@@ -69,7 +69,7 @@ function PaymentButtons() {
 										(canAffordCash && !overWeight && "bg-green-700/20 text-green-300") || "bg-red-700/20 text-red-300",
 									)}
 								>
-									{getToolTip(canAffordCash, overWeight) || "Pay with Cash"}
+									{getToolTip(canAffordCash, overWeight) || "Bezahlen mit Bargeld"}
 								</TooltipContent>
 							)}
 						</TooltipPortal>
@@ -107,7 +107,7 @@ function PaymentButtons() {
 										(canAffordCard && !overWeight && "bg-blue-700/20 text-blue-300") || "bg-red-700/20 text-red-300",
 									)}
 								>
-									{getToolTip(canAffordCard, overWeight) || "Pay with Card"}
+									{getToolTip(canAffordCard, overWeight) || "Bezahlen mit Karte"}
 								</TooltipContent>
 							)}
 						</TooltipPortal>
@@ -157,13 +157,13 @@ export default function Cart() {
 			<div className="flex justify-between gap-1">
 				<div className="mx-2 flex items-center gap-2 leading-none">
 					<FontAwesomeIcon size="lg" icon={faBasketShopping} />
-					<h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">Cart</h3>
+					<h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">Einkaufskorb</h3>
 				</div>
 
 				{CartItems && CartItems.length > 0 && (
 					<div className="mx-2 my-auto text-xl font-semibold tracking-tight">
 						{"Total: "}
-						<span className="font-bold">{cartPrice == 0 ? "FREE" : "$" + formatMoney(cartPrice)}</span>
+						<span className="font-bold">{cartPrice == 0 ? "Kostenlos" : "$" + formatMoney(cartPrice)}</span>
 					</div>
 				)}
 			</div>
@@ -171,7 +171,7 @@ export default function Cart() {
 				{CartItems?.length <= 0 ? (
 					<div className="my-auto flex flex-col items-center gap-1">
 						<FontAwesomeIcon icon={faFaceFrown} size="2x" />
-						<h1 className="text-2xl font-bold">No Items in Cart</h1>
+						<h1 className="text-2xl font-bold">Keine Waren im Einkaufskorb</h1>
 					</div>
 				) : (
 					<ScrollArea className="h-full">

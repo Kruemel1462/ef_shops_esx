@@ -2,8 +2,10 @@ lib.versionCheck('jellyton69/ef-shops')
 if not lib.checkDependency('ox_lib', '3.0.0') then error() end
 if not lib.checkDependency('ox_inventory', '2.20.0') then error() end
 
+-- ESX Initialisierung
+ESX = exports['es_extended']:getSharedObject()
+
 local config = require 'config.config'
-local TriggerEventHooks = require '@qbx_core.modules.hooks'
 
 local ox_inventory = exports.ox_inventory
 local ITEMS = ox_inventory:Items()
@@ -48,7 +50,11 @@ local function registerShop(shopType, shopData)
 end
 
 lib.callback.register("EF-Shops:Server:OpenShop", function(source, shop_type, location)
-	local shop = ShopData[shop_type][location]
+	local shop = ShopData[shop_type] and ShopData[shop_type][location]
+	if not shop then
+		lib.print.error("Shop not found: " .. shop_type .. " at location " .. location)
+		return nil
+	end
 	return shop.inventory
 end)
 
@@ -61,185 +67,225 @@ local mapBySubfield = function(tbl, subfield)
 	return mapped
 end
 
--- ESX Initialisierung
-ESX = exports['es_extended']:getSharedObject()
-
 lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchaseData)
-    if not purchaseData then
-        lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit EF-Shops:Server:PurchaseItems.")
-        return false
-    end
+	if not purchaseData then
+		lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit EF-Shops:Server:PurchaseItems.")
+		return false
+	end
 
-    if not purchaseData.shop then
-        lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit EF-Shops:Server:PurchaseItems.")
-        lib.print.warn(purchaseData)
-        return false
-    end
+	if not purchaseData.shop then
+		lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit EF-Shops:Server:PurchaseItems.")
+		lib.print.warn(purchaseData)
+		return false
+	end
 
-    local xPlayer = ESX.GetPlayerFromId(source)
-    local shop = ShopData[purchaseData.shop.id][purchaseData.shop.location]
-    local shopType = purchaseData.shop.id
+	local xPlayer = ESX.GetPlayerFromId(source)
+	if not xPlayer then
+		lib.print.error("Player not found: " .. source)
+		return false
+	end
 
-    if not shop then
-        lib.print.error("Invalid shop: " .. purchaseData.shop.id .. " called by: " .. GetPlayerName(source))
-        return false
-    end
+	local shop = ShopData[purchaseData.shop.id] and ShopData[purchaseData.shop.id][purchaseData.shop.location]
+	local shopType = purchaseData.shop.id
 
-    local shopData = LOCATIONS[purchaseData.shop.id]
+	if not shop then
+		lib.print.error("Invalid shop: " .. purchaseData.shop.id .. " called by: " .. GetPlayerName(source))
+		return false
+	end
 
-    if shopData.jobs then
-        if not shopData.jobs[xPlayer.job.name] then
-            lib.print.error("Invalid job: " .. xPlayer.job.name .. " for shop: " .. purchaseData.shop.id .. " called by: " .. GetPlayerName(source))
-            return
-        end
+	local shopData = LOCATIONS[purchaseData.shop.id]
 
-        if shopData.jobs[xPlayer.job.name] > xPlayer.job.grade then
-            lib.print.error("Invalid job grade: " .. xPlayer.job.grade .. " for shop: " .. purchaseData.shop.id .. " called by: " .. GetPlayerName(source))
-            return
-        end
-    end
+	-- Job-Prüfung für ESX
+	if shopData.jobs then
+		if not shopData.jobs[xPlayer.job.name] then
+			lib.print.error("Invalid job: " .. xPlayer.job.name .. " for shop: " .. purchaseData.shop.id .. " called by: " .. GetPlayerName(source))
+			return false
+		end
 
-    local currency = purchaseData.currency
-    local mappedCartItems = mapBySubfield(purchaseData.items, "id")
-    local validCartItems = {}
+		if shopData.jobs[xPlayer.job.name] > xPlayer.job.grade then
+			lib.print.error("Invalid job grade: " .. xPlayer.job.grade .. " for shop: " .. purchaseData.shop.id .. " called by: " .. GetPlayerName(source))
+			return false
+		end
+	end
 
-    local totalPrice = 0
-    for i = 1, #shop.inventory do
-        local shopItem = shop.inventory[i]
-        local itemData = ITEMS[shopItem.name]
-        local mappedCartItem = mappedCartItems[shopItem.id]
+	local currency = purchaseData.currency
+	local mappedCartItems = mapBySubfield(purchaseData.items, "id")
+	local validCartItems = {}
 
-        if mappedCartItem then
-            -- Lizenzprüfung ggf. anpassen, je nach ESX Lizenzsystem
-            if shopItem.license and not (xPlayer.licenses and xPlayer.licenses[shopItem.license]) then
-                TriggerClientEvent('ox_lib:notify', source, { title = "You do not have the license to purchase this item (" .. shopItem.license .. ").", type = "error" })
-                goto continue
-            end
+	local totalPrice = 0
+	for i = 1, #shop.inventory do
+		local shopItem = shop.inventory[i]
+		local itemData = ITEMS[shopItem.name]
+		local mappedCartItem = mappedCartItems[shopItem.id]
 
-            if not exports.ox_inventory:CanCarryItem(source, shopItem.name, mappedCartItem.quantity) then
-                TriggerClientEvent('ox_lib:notify', source, { title = "You cannot carry the requested quantity of " .. itemData.label .. "s.", type = "error" })
-                goto continue
-            end
+		if mappedCartItem then
+			-- Lizenzprüfung für ESX
+			if shopItem.license then
+				ESX.TriggerServerCallback('esx_license:checkLicense', function(hasLicense)
+					if not hasLicense then
+						TriggerClientEvent('ox_lib:notify', source, { 
+							title = "License Required", 
+							description = "You do not have the license to purchase this item (" .. shopItem.license .. ").", 
+							type = "error" 
+						})
+						return
+					end
+				end, source, shopItem.license)
+			end
 
-            if shopItem.count and (mappedCartItem.quantity > shopItem.count) then
-                TriggerClientEvent('ox_lib:notify', source, { title = "The requested amount of " .. itemData.label .. " is no longer in stock.", type = "error" })
-                goto continue
-            end
+			if not exports.ox_inventory:CanCarryItem(source, shopItem.name, mappedCartItem.quantity) then
+				TriggerClientEvent('ox_lib:notify', source, { 
+					title = "Inventory Full", 
+					description = "You cannot carry the requested quantity of " .. itemData.label .. "s.", 
+					type = "error" 
+				})
+				goto continue
+			end
 
-            if shopItem.jobs then
-                if not shopItem.jobs[xPlayer.job.name] then
-                    TriggerClientEvent('ox_lib:notify', source, { title = "You do not have the required job to purchase " .. itemData.label .. ".", type = "error" })
-                    goto continue
-                end
-                if shopItem.jobs[xPlayer.job.name] > xPlayer.job.grade then
-                    TriggerClientEvent('ox_lib:notify', source, { title = "You do not have the required grade to purchase " .. itemData.label .. ".", type = "error" })
-                    goto continue
-                end
-            end
+			if shopItem.count and (mappedCartItem.quantity > shopItem.count) then
+				TriggerClientEvent('ox_lib:notify', source, { 
+					title = "Out of Stock", 
+					description = "The requested amount of " .. itemData.label .. " is no longer in stock.", 
+					type = "error" 
+				})
+				goto continue
+			end
 
-            local newIndex = #validCartItems + 1
-            validCartItems[newIndex] = mappedCartItem
-            validCartItems[newIndex].inventoryIndex = i
+			if shopItem.jobs then
+				if not shopItem.jobs[xPlayer.job.name] then
+					TriggerClientEvent('ox_lib:notify', source, { 
+						title = "Job Required", 
+						description = "You do not have the required job to purchase " .. itemData.label .. ".", 
+						type = "error" 
+					})
+					goto continue
+				end
+				if shopItem.jobs[xPlayer.job.name] > xPlayer.job.grade then
+					TriggerClientEvent('ox_lib:notify', source, { 
+						title = "Grade Required", 
+						description = "You do not have the required grade to purchase " .. itemData.label .. ".", 
+						type = "error" 
+					})
+					goto continue
+				end
+			end
 
-            totalPrice = totalPrice + (shopItem.price * mappedCartItem.quantity)
-        end
+			local newIndex = #validCartItems + 1
+			validCartItems[newIndex] = mappedCartItem
+			validCartItems[newIndex].inventoryIndex = i
 
-        :: continue ::
-    end
+			totalPrice = totalPrice + (shopItem.price * mappedCartItem.quantity)
+		end
 
-    local itemStrings = {}
-    local itemMetadata = {}
-    for i = 1, #validCartItems do
-        local item = validCartItems[i]
-        local itemData = ITEMS[item.name]
-        itemStrings[#itemStrings + 1] = item.quantity .. "x " .. itemData.label
-        itemMetadata[item.name] = item.quantity
-    end
-    local purchaseReason = table.concat(itemStrings, "; ")
+		:: continue ::
+	end
 
-    -- Geld abziehen (ESX)
-    if currency == "cash" then
-        if xPlayer.getMoney() < totalPrice then
-            TriggerClientEvent('ox_lib:notify', source, { title = "You do not have enough cash for this transaction.", type = "error" })
-            return false
-        end
-        xPlayer.removeMoney(totalPrice)
-    else
-        if xPlayer.getAccount('bank').money < totalPrice then
-            TriggerClientEvent('ox_lib:notify', source, { title = "You do not have enough money in the bank for this transaction.", type = "error" })
-            return false
-        end
-        xPlayer.removeAccountMoney('bank', totalPrice)
-    end
+	local itemStrings = {}
+	for i = 1, #validCartItems do
+		local item = validCartItems[i]
+		local itemData = ITEMS[item.name]
+		itemStrings[#itemStrings + 1] = item.quantity .. "x " .. itemData.label
+	end
+	local purchaseReason = table.concat(itemStrings, "; ")
 
-    local dropItems = {}
-    for i = 1, #validCartItems do
-        local item = validCartItems[i]
-        local itemData = ITEMS[item.name]
-        local productData = PRODUCTS[shopData.shopItems][item.id]
+	-- Geld abziehen (ESX)
+	if currency == "cash" then
+		if xPlayer.getMoney() < totalPrice then
+			TriggerClientEvent('ox_lib:notify', source, { 
+				title = "Insufficient Funds", 
+				description = "You do not have enough cash for this transaction.", 
+				type = "error" 
+			})
+			return false
+		end
+		xPlayer.removeMoney(totalPrice)
+	else
+		local bankAccount = xPlayer.getAccount('bank')
+		if not bankAccount or bankAccount.money < totalPrice then
+			TriggerClientEvent('ox_lib:notify', source, { 
+				title = "Insufficient Funds", 
+				description = "You do not have enough money in the bank for this transaction.", 
+				type = "error" 
+			})
+			return false
+		end
+		xPlayer.removeAccountMoney('bank', totalPrice)
+	end
 
-        if not itemData then
-            lib.print.error("Invalid item: " .. item.name .. " in shop: " .. shopType)
-            goto continue
-        end
+	local dropItems = {}
+	for i = 1, #validCartItems do
+		local item = validCartItems[i]
+		local itemData = ITEMS[item.name]
+		local productData = PRODUCTS[shopData.shopItems][item.id]
 
-        if not productData then
-            lib.print.error("Invalid product: " .. item.name .. " in shop: " .. shopType)
-            goto continue
-        end
+		if not itemData then
+			lib.print.error("Invalid item: " .. item.name .. " in shop: " .. shopType)
+			goto continue
+		end
 
-        -- Hier ggf. eigene Hooks einbauen, falls benötigt
+		if not productData then
+			lib.print.error("Invalid product: " .. item.name .. " in shop: " .. shopType)
+			goto continue
+		end
 
-        local success, response = ox_inventory:AddItem(source, item.name, item.quantity, productData.metadata)
-        if success then
-            if shop.inventory[item.inventoryIndex].count then
-                shop.inventory[item.inventoryIndex].count = shop.inventory[item.inventoryIndex].count - item.quantity
-            end
+		local success, response = ox_inventory:AddItem(source, item.name, item.quantity, productData.metadata)
+		if success then
+			if shop.inventory[item.inventoryIndex].count then
+				shop.inventory[item.inventoryIndex].count = shop.inventory[item.inventoryIndex].count - item.quantity
+			end
+		else
+			-- Refund money if item couldn't be added
+			local itemPrice = item.quantity * shop.inventory[item.inventoryIndex].price
+			if currency == "cash" then
+				xPlayer.addMoney(itemPrice)
+			else
+				xPlayer.addAccountMoney('bank', itemPrice)
+			end
+			
+			-- Add to drop items if inventory is full
+			dropItems[#dropItems + 1] = {
+				name = item.name,
+				count = item.quantity,
+				metadata = productData.metadata
+			}
+		end
 
-            -- Hier ggf. eigene Hooks einbauen, falls benötigt
-        else
-            local itemPrice = item.quantity * shop.inventory[item.inventoryIndex].price
-            if currency == "cash" then
-                xPlayer.addMoney(itemPrice)
-            else
-                xPlayer.addAccountMoney('bank', itemPrice)
-            end
-        end
+		:: continue ::
+	end
 
-        :: continue ::
-    end
+	if #dropItems > 0 then
+		exports.ox_inventory:CustomDrop('Shop Drop', dropItems, GetEntityCoords(GetPlayerPed(source)), #dropItems, 10000, GetPlayerRoutingBucket(source), `prop_cs_shopping_bag`)
+	end
 
-    if #dropItems > 0 then
-        exports.ox_inventory:CustomDrop('Shop Drop', dropItems, GetEntityCoords(GetPlayerPed(source)), #dropItems, 10000, GetPlayerRoutingBucket(source), `prop_cs_shopping_bag`)
-    end
-
-    return true
+	return true
 end)
 
 AddEventHandler('onResourceStart', function(resource)
 	if GetCurrentResourceName() ~= resource and "ox_inventory" ~= resource then return end
 
+	-- Validate items exist in ox_inventory
 	for productType, productData in pairs(PRODUCTS) do
 		for _, item in pairs(productData) do
 			if not ITEMS[(string.find(item.name, "weapon_") and (item.name):upper()) or item.name] then
-				lib.print.error("Invalid Item: ", item, "in product table:", productType, "^7")
+				lib.print.error("Invalid Item: ", item.name, "in product table:", productType, "^7")
 				productData[item] = nil
 			end
 		end
 	end
 
+	-- Register shops
 	for shopID, shopData in pairs(LOCATIONS) do
 		if not shopData.shopItems or not PRODUCTS[shopData.shopItems] then
-			lib.print.error("A valid product ID (" .. shopData.shopItems .. ") for [" .. shopID .. "] was not found.")
+			lib.print.error("A valid product ID (" .. (shopData.shopItems or "nil") .. ") for [" .. shopID .. "] was not found.")
 			goto continue
 		end
 
 		local shopProducts = {}
 		for item, data in pairs(PRODUCTS[shopData.shopItems]) do
 			shopProducts[#shopProducts + 1] = {
-				id = tonumber(item),
+				id = tonumber(item) or #shopProducts + 1,
 				name = data.name,
-				price = config.fluctuatePrices and (math.round(data.price * (math.random(80, 120) / 100))) or data.price or 0, -- Price fluctuation algorithm from ox_inventory https://github.com/overextended/ox_inventory/blob/e3a6b905a1b8bdbd3066d012522cf5993466d166/modules/shops/server.lua#L32
+				price = config.fluctuatePrices and (math.floor(data.price * (math.random(80, 120) / 100))) or data.price or 0,
 				license = data.license,
 				metadata = data.metadata,
 				count = data.defaultStock,
@@ -252,7 +298,7 @@ AddEventHandler('onResourceStart', function(resource)
 		end)
 
 		registerShop(shopID, {
-			name = shopData.Label,
+			name = shopData.label,
 			inventory = shopProducts,
 			groups = shopData.groups,
 			coords = shopData.coords
@@ -260,4 +306,6 @@ AddEventHandler('onResourceStart', function(resource)
 
 		::continue::
 	end
+	
+	lib.print.info("EF-Shops loaded successfully with " .. lib.table.tablesize(ShopData) .. " shop types")
 end)

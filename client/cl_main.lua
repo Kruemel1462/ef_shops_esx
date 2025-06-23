@@ -1,6 +1,9 @@
 if not lib.checkDependency('ox_lib', '3.0.0') then error() end
 if not lib.checkDependency('ox_inventory', '2.20.0') then error() end
 
+-- ESX Initialisierung
+ESX = exports['es_extended']:getSharedObject()
+
 local PRODUCTS = require 'config.shop_items' ---@type table<string, table<string, ShopItem>>
 local LOCATIONS = require 'config.locations' ---@type type<string, ShopLocation>
 
@@ -9,7 +12,7 @@ local ITEMS = exports.ox_inventory:Items()
 local Vendors = {}
 local Points = {}
 local Blips = {}
-local Targets = {}
+local NearbyShops = {} -- Neue Tabelle für nahegelegene Shops
 
 ShopOpen = false
 
@@ -23,9 +26,58 @@ local scenarios = {
 
 local function setShopVisible(shouldShow)
 	ShopOpen = shouldShow
-
 	SetNuiFocus(shouldShow, shouldShow)
 	SendReactMessage("setVisible", shouldShow)
+end
+
+-- Hilfsfunktion um PlayerData zu aktualisieren
+local function UpdatePlayerData()
+	ESX.PlayerData = ESX.GetPlayerData()
+end
+
+-- Verbesserte Hilfsfunktion um Geld-Daten zu formatieren
+local function GetPlayerMoney()
+    -- Stelle sicher, dass PlayerData aktuell ist
+    ESX.PlayerData = ESX.GetPlayerData()
+    
+    if not ESX.PlayerData then
+        return { Cash = 0, Bank = 0 }
+    end
+    
+    local cashMoney = 0
+    local bankMoney = 0
+    
+    -- ESX Account System - durchsuche alle Accounts
+    if ESX.PlayerData.accounts then
+        for i=1, #ESX.PlayerData.accounts do
+            if ESX.PlayerData.accounts[i].name == 'money' then
+                cashMoney = ESX.PlayerData.accounts[i].money
+            elseif ESX.PlayerData.accounts[i].name == 'bank' then
+                bankMoney = ESX.PlayerData.accounts[i].money
+            end
+        end
+    end
+    
+    -- Fallback: Versuche auch ESX.PlayerData.money für Cash
+    if cashMoney == 0 and ESX.PlayerData.money then
+        cashMoney = ESX.PlayerData.money
+    end
+    
+    return {
+        Cash = cashMoney,
+        Bank = bankMoney
+    }
+end
+
+-- Hilfsfunktion um Lizenzen zu holen
+local function GetPlayerLicenses()
+	local licenses = {}
+	ESX.TriggerServerCallback('esx_license:checkLicense', function(hasLicense)
+		-- Hier könntest du verschiedene Lizenzen prüfen
+	end, GetPlayerServerId(PlayerId()), 'weapon')
+	
+	-- Fallback für einfache Lizenzprüfung
+	return ESX.PlayerData.licenses or {}
 end
 
 ---@param data { type: string, location?: number }
@@ -41,16 +93,21 @@ local function openShop(data)
 		return
 	end
 
+	-- Job-Prüfung für ESX
 	if shopData.jobs then
-		if (shopData.jobs[ESX.PlayerData.job.name] and shopData.jobs[ESX.PlayerData.job.name] <= ESX.PlayerData.job.grade.level) then
-			goto continue
+		local playerJob = ESX.PlayerData.job
+		if not playerJob then
+			lib.notify({ title = "Shop Access", description = "You do not have access to this shop.", type = "error" })
+			return
+		end
+		
+		if shopData.jobs[playerJob.name] and shopData.jobs[playerJob.name] <= playerJob.grade then
+			-- Access granted
 		else
 			lib.notify({ title = "Shop Access", description = "You do not have access to this shop.", type = "error" })
 			return
 		end
 	end
-
-	:: continue ::
 
 	setShopVisible(true)
 
@@ -72,21 +129,50 @@ local function openShop(data)
 		item.jobs = productData.jobs
 	end
 
+	UpdatePlayerData()
+
 	SendReactMessage("setSelfData", {
 		weight = exports.ox_inventory:GetPlayerWeight(),
 		maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
-		money = {
-			Cash = ESX.PlayerData.money.cash,
-			Bank = ESX.PlayerData.money.bank
-		},
+		money = GetPlayerMoney(),
 		job = {
 			name = ESX.PlayerData.job.name,
-			grade = ESX.PlayerData.job.grade.level
+			grade = ESX.PlayerData.job.grade
 		},
-		licenses = ESX.PlayerData.metadata.licences
+		licenses = GetPlayerLicenses()
 	})
 	SendReactMessage("setCurrentShop", { id = data.type, location = data.location, label = LOCATIONS[data.type].label })
 	SendReactMessage("setShopItems", shopItems)
+end
+
+-- Funktion um Shop-Daten zu aktualisieren
+local function UpdateShopData()
+    if not ShopOpen then return end
+    
+    UpdatePlayerData()
+    SendReactMessage("setSelfData", {
+        weight = exports.ox_inventory:GetPlayerWeight(),
+        maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
+        money = GetPlayerMoney(),
+        job = {
+            name = ESX.PlayerData.job.name,
+            grade = ESX.PlayerData.job.grade
+        },
+        licenses = GetPlayerLicenses()
+    })
+end
+
+-- Neue Funktion um Text-UI anzuzeigen
+local function ShowShopText(shopData)
+    lib.showTextUI('[E] - ' .. (shopData.target?.label or "Browse Shop"), {
+        position = "top-center",
+        icon = shopData.target?.icon or "fas fa-cash-register"
+    })
+end
+
+-- Neue Funktion um Text-UI zu verstecken
+local function HideShopText()
+    lib.hideTextUI()
 end
 
 exports("OpenShop", function(type)
@@ -105,14 +191,12 @@ RegisterNuiCallback("purchaseItems", function(data, cb)
 		lib.notify({ title = "Purchase Failed", description = "An error occurred while trying to purchase items.", type = "error" })
 	end
 
+	UpdatePlayerData()
 	SendReactMessage("setSelfData", {
 		weight = exports.ox_inventory:GetPlayerWeight(),
 		maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
-		money = {
-			Cash = ESX.PlayerData.money.cash,
-			Bank = ESX.PlayerData.money.bank
-		},
-		licenses = ESX.PlayerData.metadata.licences
+		money = GetPlayerMoney(),
+		licenses = GetPlayerLicenses()
 	})
 
 	cb(success)
@@ -121,22 +205,24 @@ end)
 -- Frame Callbacks
 RegisterNUICallback("Loaded", function(data, cb)
 	cb(1)
-	if not LocalPlayer.state.isLoggedIn then return end
+	if not ESX.PlayerData or not ESX.PlayerData.identifier then return end
 end)
 
 RegisterNUICallback("hideFrame", function(_, cb)
 	cb(1)
 	setShopVisible(false)
 	Wait(400)
-	SendReactMessage("setCurrentShop", null)
+	SendReactMessage("setCurrentShop", nil)
 end)
 
+-- Hauptthread für Shop-Erstellung (ohne ox_target)
 CreateThread(function()
 	for shopID, storeData in pairs(LOCATIONS) do
 		if not storeData.coords then goto continue end
 
 		for locationIndex, locationCoords in pairs(storeData.coords) do
-			if not storeData.blip.disabled then
+			-- Blip erstellen
+			if not storeData.blip or not storeData.blip.disabled then
 				local StoreBlip = AddBlipForCoord(locationCoords.x, locationCoords.y, locationCoords.z)
 				SetBlipSprite(StoreBlip, storeData.blip.sprite)
 				SetBlipScale(StoreBlip, storeData.blip.scale or 0.7)
@@ -153,26 +239,14 @@ CreateThread(function()
 				Blips[#Blips + 1] = StoreBlip
 			end
 
-			local targetOptions = {
-				{
-					name = storeData.label,
-					label = storeData.target?.label or "Browse Shop",
-					icon = storeData.target?.icon or "fas fa-cash-register",
-					items = storeData.requiredItem,
-					onSelect = function()
-						openShop({ type = shopID, location = locationIndex })
-					end
-				}
-			}
-
 			local model = type(storeData.model) == "table" and storeData.model[math.random(1, #storeData.model)] or storeData.model
 
-			if model then -- Create entity target
+			if model then -- Create entity
 				local createEntity
 				local deleteEntity
 				if IsModelAPed(model) then
 					function createEntity()
-						Vendors[shopID .. locationIndex] = CreatePed(0, model, locationCoords.x, locationCoords.y, locationCoords.z - 1.0, locationCoords.a, false, false)
+						Vendors[shopID .. locationIndex] = CreatePed(0, model, locationCoords.x, locationCoords.y, locationCoords.z - 1.0, locationCoords.w, false, false)
 						SetEntityInvincible(Vendors[shopID .. locationIndex], true)
 						TaskStartScenarioInPlace(Vendors[shopID .. locationIndex], storeData.scenario or scenarios[math.random(1, #scenarios)], -1, true)
 						SetBlockingOfNonTemporaryEvents(Vendors[shopID .. locationIndex], true)
@@ -181,7 +255,9 @@ CreateThread(function()
 					end
 
 					function deleteEntity()
-						DeletePed(Vendors[shopID .. locationIndex])
+						if DoesEntityExist(Vendors[shopID .. locationIndex]) then
+							DeletePed(Vendors[shopID .. locationIndex])
+						end
 					end
 				else
 					function createEntity()
@@ -191,10 +267,13 @@ CreateThread(function()
 					end
 
 					function deleteEntity()
-						DeleteEntity(Vendors[shopID .. locationIndex])
+						if DoesEntityExist(Vendors[shopID .. locationIndex]) then
+							DeleteEntity(Vendors[shopID .. locationIndex])
+						end
 					end
 				end
 
+				-- Point System für Nähe-Erkennung
 				local point = lib.points.new(locationCoords, 25)
 				function point:onEnter()
 					if not Vendors[shopID .. locationIndex] or (Vendors[shopID .. locationIndex] and not DoesEntityExist(Vendors[shopID .. locationIndex])) then
@@ -205,115 +284,171 @@ CreateThread(function()
 						end
 						createEntity()
 					end
-
-					exports.ox_target:addLocalEntity(Vendors[shopID .. locationIndex], targetOptions)
 				end
 
 				function point:onExit()
 					deleteEntity()
 				end
 
-				Points[#Points + 1] = point
-			else -- Create normal target point
-				local target = exports.ox_target:addSphereZone({
-					coords = locationCoords,
-					options = targetOptions,
-					radius = storeData.target?.radius
-				})
+				-- Nähe-Punkt für E-Taste Interaktion
+				local interactionPoint = lib.points.new(locationCoords, storeData.target?.radius or 2.0)
+				function interactionPoint:onEnter()
+					NearbyShops[shopID .. locationIndex] = {
+						shopID = shopID,
+						locationIndex = locationIndex,
+						storeData = storeData
+					}
+					ShowShopText(storeData)
+				end
 
-				Targets[#Targets + 1] = target
+				function interactionPoint:onExit()
+					NearbyShops[shopID .. locationIndex] = nil
+					if next(NearbyShops) == nil then -- Keine Shops in der Nähe
+						HideShopText()
+					end
+				end
+
+				Points[#Points + 1] = point
+				Points[#Points + 1] = interactionPoint
+			else
+				-- Punkt ohne Entity für E-Taste Interaktion
+				local interactionPoint = lib.points.new(locationCoords, storeData.target?.radius or 2.0)
+				function interactionPoint:onEnter()
+					NearbyShops[shopID .. locationIndex] = {
+						shopID = shopID,
+						locationIndex = locationIndex,
+						storeData = storeData
+					}
+					ShowShopText(storeData)
+				end
+
+				function interactionPoint:onExit()
+					NearbyShops[shopID .. locationIndex] = nil
+					if next(NearbyShops) == nil then -- Keine Shops in der Nähe
+						HideShopText()
+					end
+				end
+
+				Points[#Points + 1] = interactionPoint
 			end
 		end
 
 		:: continue ::
 	end
 end)
--- ESX Initialisierung
-ESX = exports['es_extended']:getSharedObject()
 
--- Hilfsfunktion um PlayerData zu aktualisieren
-local function UpdatePlayerData()
-    ESX.PlayerData = ESX.GetPlayerData()
-end
+-- Thread für E-Taste Erkennung
+CreateThread(function()
+	while true do
+		if next(NearbyShops) ~= nil and not ShopOpen then
+			if IsControlJustReleased(0, 38) then -- E-Taste
+				-- Finde den nächsten Shop
+				local playerCoords = GetEntityCoords(cache.ped)
+				local closestShop = nil
+				local closestDistance = math.huge
 
--- Beispiel für SendReactMessage mit ESX-Daten
-SendReactMessage("setSelfData", {
-    weight = exports.ox_inventory:GetPlayerWeight(),
-    maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
-    money = {
-        Cash = ESX.PlayerData.money,
-        Bank = ESX.PlayerData.accounts and ESX.PlayerData.accounts[1] and ESX.PlayerData.accounts[1].money or 0
-    },
-    job = {
-        name = ESX.PlayerData.job.name,
-        grade = ESX.PlayerData.job.grade
-    },
-    licenses = ESX.PlayerData.licenses -- ggf. musst du die Lizenzen separat holen!
-})
+				for _, shopData in pairs(NearbyShops) do
+					local shopCoords = LOCATIONS[shopData.shopID].coords[shopData.locationIndex]
+					local distance = #(playerCoords - vector3(shopCoords.x, shopCoords.y, shopCoords.z))
+					
+					if distance < closestDistance then
+						closestDistance = distance
+						closestShop = shopData
+					end
+				end
 
--- Events anpassen
-RegisterNetEvent('esx:setAccountMoney')
-AddEventHandler('esx:setAccountMoney', function(account)
-    if not ShopOpen then return end
-    UpdatePlayerData()
-    SendReactMessage("setSelfData", {
-        money = {
-            Cash = ESX.PlayerData.money,
-            Bank = ESX.PlayerData.accounts and ESX.PlayerData.accounts[1] and ESX.PlayerData.accounts[1].money or 0
-        }
-    })
+				if closestShop then
+					openShop({ type = closestShop.shopID, location = closestShop.locationIndex })
+				end
+			end
+		end
+		Wait(0)
+	end
+end)
+
+-- ESX Events - Verbesserte Version für Cash-Probleme
+RegisterNetEvent('esx:playerLoaded')
+AddEventHandler('esx:playerLoaded', function(xPlayer)
+    ESX.PlayerData = xPlayer
+    UpdateShopData()
 end)
 
 RegisterNetEvent('esx:setJob')
 AddEventHandler('esx:setJob', function(job)
-    if not ShopOpen then return end
-    UpdatePlayerData()
-    SendReactMessage("setSelfData", {
-        job = {
-            name = ESX.PlayerData.job.name,
-            grade = ESX.PlayerData.job.grade
-        }
-    })
+    ESX.PlayerData.job = job
+    UpdateShopData()
 end)
 
--- Lizenzen musst du ggf. mit einem Server-Callback holen, z.B.:
-ESX.TriggerServerCallback('esx_license:getLicenses', function(licenses)
-    ESX.PlayerData.licenses = licenses
-    if ShopOpen then
-        SendReactMessage("setSelfData", {
-            licenses = licenses
-        })
+RegisterNetEvent('esx:setAccountMoney')
+AddEventHandler('esx:setAccountMoney', function(account)
+    -- Aktualisiere die lokalen PlayerData
+    if ESX.PlayerData.accounts then
+        for i=1, #ESX.PlayerData.accounts do
+            if ESX.PlayerData.accounts[i].name == account.name then
+                ESX.PlayerData.accounts[i].money = account.money
+                break
+            end
+        end
     end
+    
+    -- Spezielle Behandlung für Cash
+    if account.name == 'money' then
+        ESX.PlayerData.money = account.money
+    end
+    
+    UpdateShopData()
 end)
 
--- Event handlers
-
-RegisterNetEvent('QBCore:Client:OnMoneyChange', function()
-	if not ShopOpen then return end
-	SendReactMessage("setSelfData", {
-		money = {
-			Cash = ESX.PlayerData.money.cash,
-			Bank = ESX.PlayerData.money.bank
-		},
-	})
+-- Zusätzliche Events für Cash-Änderungen
+RegisterNetEvent('esx:addedMoney')
+AddEventHandler('esx:addedMoney', function(money)
+    -- Aktualisiere sowohl PlayerData.money als auch den money account
+    ESX.PlayerData.money = (ESX.PlayerData.money or 0) + money
+    
+    if ESX.PlayerData.accounts then
+        for i=1, #ESX.PlayerData.accounts do
+            if ESX.PlayerData.accounts[i].name == 'money' then
+                ESX.PlayerData.accounts[i].money = ESX.PlayerData.accounts[i].money + money
+                break
+            end
+        end
+    end
+    
+    UpdateShopData()
 end)
 
-RegisterNetEvent('qbx_core:client:onSetMetaData', function(metadata)
-	if not metadata == 'licenses' or not ShopOpen then return end
-	SendReactMessage("setSelfData", {
-		licenses = ESX.PlayerData.metadata.licences
-	})
+RegisterNetEvent('esx:removedMoney')
+AddEventHandler('esx:removedMoney', function(money)
+    -- Aktualisiere sowohl PlayerData.money als auch den money account
+    ESX.PlayerData.money = (ESX.PlayerData.money or 0) - money
+    
+    if ESX.PlayerData.accounts then
+        for i=1, #ESX.PlayerData.accounts do
+            if ESX.PlayerData.accounts[i].name == 'money' then
+                ESX.PlayerData.accounts[i].money = ESX.PlayerData.accounts[i].money - money
+                break
+            end
+        end
+    end
+    
+    UpdateShopData()
 end)
 
-RegisterNetEvent('qbx_core:client:onGroupUpdate', function()
-	if not ShopOpen then return end
-	Wait(5) -- Waiting for QBX to update job data
-	SendReactMessage("setSelfData", {
-		job = {
-			name = ESX.PlayerData.job.name,
-			grade = ESX.PlayerData.job.grade.level
-		}
-	})
+-- Zusätzlicher Event für direkte Geld-Updates
+RegisterNetEvent('esx:setMoney')
+AddEventHandler('esx:setMoney', function(money)
+    ESX.PlayerData.money = money
+    
+    if ESX.PlayerData.accounts then
+        for i=1, #ESX.PlayerData.accounts do
+            if ESX.PlayerData.accounts[i].name == 'money' then
+                ESX.PlayerData.accounts[i].money = money
+                break
+            end
+        end
+    end
+    
+    UpdateShopData()
 end)
 
 AddEventHandler('ox_inventory:updateInventory', function()
@@ -328,10 +463,12 @@ AddEventHandler('onResourceStop', function(resource)
 	if resource ~= GetCurrentResourceName() then return end
 
 	for _, entity in pairs(Vendors) do
-		if IsModelAPed(GetEntityModel(entity)) then
-			DeletePed(entity)
-		else
-			DeleteObject(entity)
+		if DoesEntityExist(entity) then
+			if IsModelAPed(GetEntityModel(entity)) then
+				DeletePed(entity)
+			else
+				DeleteObject(entity)
+			end
 		end
 	end
 
@@ -343,7 +480,16 @@ AddEventHandler('onResourceStop', function(resource)
 		RemoveBlip(blip)
 	end
 
-	for _, target in ipairs(Targets) do
-		exports.ox_target:removeZone(target)
-	end
+	-- Text-UI verstecken beim Resource-Stop
+	HideShopText()
+end)
+
+-- Timer für regelmäßige Geld-Updates
+CreateThread(function()
+    while true do
+        if ShopOpen then
+            UpdateShopData()
+        end
+        Wait(2000) -- Alle 2 Sekunden aktualisieren
+    end
 end)

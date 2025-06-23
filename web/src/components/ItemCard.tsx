@@ -28,7 +28,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 						{(!hasLicense && "You need a " + item.license + " license to purchase this item.") ||
 							(canNotAfford && "You cannot afford this item.") ||
 							(overWeight && "You cannot carry this item.") ||
-							(!inStock && "This item is out of stock.") ||
+							(!inStock && "Dieser Artikel ist ausverkauft") ||
 							(!hasCorrectGrade && "You don't have the correct job and rank to purchase this item")}
 					</TooltipContent>
 				)}
@@ -43,7 +43,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 					}}
 				>
 					<div className="mx-auto flex w-full items-center justify-between gap-2">
-						<p className="text-lg font-semibold">{item.price == 0 ? "FREE" : "$" + item.price}</p>
+						<p className="text-lg font-semibold">{item.price == 0 ? "GRATIS" : "$" + item.price}</p>
 						{item.count !== undefined && <p className="text-lg font-semibold">{item.count}x</p>}
 					</div>
 					<div className="m-auto h-[80%]">

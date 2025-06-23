@@ -18,22 +18,6 @@ return {
 			`S_F_M_RetailStaff_01`,
 		},
 		coords = {
-			-- Normal Locations
-			--[[
-				vector4(24.5, -1346.19, 29.5, 266.78),
-				vector4(-3039.91, 584.26, 7.91, 16.79),
-				vector4(-3243.27, 1000.1, 12.83, 358.73),
-				vector4(1728.28, 6416.03, 35.04, 242.45),
-				vector4(1697.96, 4923.04, 42.06, 326.61),
-				vector4(1959.6, 3740.93, 32.34, 296.84),
-				vector4(549.16, 2670.35, 42.16, 92.53),
-				vector4(2677.41, 3279.8, 55.24, 334.16),
-				vector4(2556.19, 380.89, 108.62, 355.58),
-				vector4(372.82, 327.3, 103.57, 255.46),
-				vector4(161.21, 6642.32, 31.61, 223.57),
-				vector4(-553.02, -583.2, 34.68, 178.34),
-			]]
-
 			-- Gobz Locations
 			vector4(24.91, -1346.86, 29.5, 268.37),
 			vector4(-3039.64, 584.78, 7.91, 21.88),
@@ -54,19 +38,19 @@ return {
 			vector4(1164.82, -323.66, 69.21, 106.86),
 
 			-- Xero Gas Stations
-			vector4(292.57, -1273.32, 29.42, 0.05), -- Xero Strawberry 834
-			vector4(-2070.68, -334.05, 13.31, 353.35), -- Xero Pacific Bluffs 682
-			vector4(-538.61, -1221.4, 18.46, 239.83), -- Xero Little Seoul 724
+			vector4(292.57, -1273.32, 29.42, 0.05),
+			vector4(-2070.68, -334.05, 13.31, 353.35),
+			vector4(-538.61, -1221.4, 18.46, 239.83),
 
 			-- Ron Gas Stations
-			vector4(-2550.3, 2312.92, 33.23, 269.68), -- Ron Great Ocean Hwy
-			vector4(-1421.36, -271.14, 46.3, 44.25), -- Ron Morningwood
+			vector4(-2550.3, 2312.92, 33.23, 269.68),
+			vector4(-1421.36, -271.14, 46.3, 44.25),
 
 			-- Globe Oil Locations
 			vector4(644.72, 257.69, 103.3, 325.93),
 			vector4(-345.66, -1473.96, 30.79, 181.86)
 		},
-		shopItems = "normal",
+		shopItems = "electronics",
 		blip = {
 			sprite = 52,
 			color = 2,
@@ -91,9 +75,8 @@ return {
 			vector4(1165.15, 2710.78, 38.16, 177.96),
 			vector4(1134.3, -983.26, 46.42, 276.3),
 			vector4(1744.65, 3611.95, 34.89, 311.19)
-
 		},
-		shopItems = "bar",
+		shopItems = "electronics",
 		blip = {
 			sprite = 827,
 			color = 47,
@@ -121,7 +104,7 @@ return {
 			vector4(1167.28, -1347.11, 34.91, 276.86),
 			vector4(2665.97, 3385.94, 57.12, 241.55)
 		},
-		shopItems = "hardware",
+		shopItems = "electronics",
 		blip = {
 			sprite = 402,
 			color = 5,
@@ -153,7 +136,7 @@ return {
 			vector4(841.31, -1035.28, 28.19, 334.27),
 			vector4(-1304.44, -395.68, 36.7, 41.85),
 		},
-		shopItems = "weapons",
+		shopItems = "electronics",
 		blip = {
 			sprite = 567,
 			color = 1,
@@ -171,7 +154,7 @@ return {
 			`CS_LifeInvad_01`,
 		},
 		coords = {
-			vector4(1767.11, 3646.52, 34.89, 116.98)
+			vector4(240.05, -897.57, 29.62, 159.74)
 		},
 		shopItems = "electronics",
 		blip = {
