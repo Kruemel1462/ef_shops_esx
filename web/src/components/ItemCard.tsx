@@ -25,11 +25,11 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 			<TooltipPortal>
 				{disabled && (
 					<TooltipContent>
-						{(!hasLicense && "You need a " + item.license + " license to purchase this item.") ||
-							(canNotAfford && "You cannot afford this item.") ||
-							(overWeight && "You cannot carry this item.") ||
+						{(!hasLicense && "Du brauchst eine " + item.license + " Lizenz um das Item zu kaufen.") ||
+							(canNotAfford && "Du kannst dir das Item nicht leisten.") ||
+							(overWeight && "Du kannst das Item nicht tragen.") ||
 							(!inStock && "Dieser Artikel ist ausverkauft") ||
-							(!hasCorrectGrade && "You don't have the correct job and rank to purchase this item")}
+							(!hasCorrectGrade && "Du hast nicht den richtigen Job oder Rang, um dieses Item zu kaufen.")}
 					</TooltipContent>
 				)}
 			</TooltipPortal>

@@ -21,8 +21,8 @@ const formatWeight = (weight: number) => {
 };
 
 function getToolTip(canAfford: boolean, overWeight: boolean) {
-	if (overWeight) return "You cannot carry all the items in the cart.";
-	if (!canAfford) return "You cannot afford all the items in the cart.";
+	if (overWeight) return "Du kannst nicht alle Items tragen die im Warenkorb sind.";
+	if (!canAfford) return "Du kannst dir nicht alle Items im Warenkorb leisten.";
 }
 
 function PaymentButtons() {
@@ -162,7 +162,7 @@ export default function Cart() {
 
 				{CartItems && CartItems.length > 0 && (
 					<div className="mx-2 my-auto text-xl font-semibold tracking-tight">
-						{"Total: "}
+						{"Gesamt: "}
 						<span className="font-bold">{cartPrice == 0 ? "Kostenlos" : "$" + formatMoney(cartPrice)}</span>
 					</div>
 				)}
