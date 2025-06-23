@@ -1,4 +1,3 @@
-if not lib.checkDependency('qbx_core', '1.6.0') then error() end
 if not lib.checkDependency('ox_lib', '3.0.0') then error() end
 if not lib.checkDependency('ox_inventory', '2.20.0') then error() end
 
@@ -43,7 +42,7 @@ local function openShop(data)
 	end
 
 	if shopData.jobs then
-		if (shopData.jobs[QBX.PlayerData.job.name] and shopData.jobs[QBX.PlayerData.job.name] <= QBX.PlayerData.job.grade.level) then
+		if (shopData.jobs[ESX.PlayerData.job.name] and shopData.jobs[ESX.PlayerData.job.name] <= ESX.PlayerData.job.grade.level) then
 			goto continue
 		else
 			lib.notify({ title = "Shop Access", description = "You do not have access to this shop.", type = "error" })
@@ -77,14 +76,14 @@ local function openShop(data)
 		weight = exports.ox_inventory:GetPlayerWeight(),
 		maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
 		money = {
-			Cash = QBX.PlayerData.money.cash,
-			Bank = QBX.PlayerData.money.bank
+			Cash = ESX.PlayerData.money.cash,
+			Bank = ESX.PlayerData.money.bank
 		},
 		job = {
-			name = QBX.PlayerData.job.name,
-			grade = QBX.PlayerData.job.grade.level
+			name = ESX.PlayerData.job.name,
+			grade = ESX.PlayerData.job.grade.level
 		},
-		licenses = QBX.PlayerData.metadata.licences
+		licenses = ESX.PlayerData.metadata.licences
 	})
 	SendReactMessage("setCurrentShop", { id = data.type, location = data.location, label = LOCATIONS[data.type].label })
 	SendReactMessage("setShopItems", shopItems)
@@ -110,10 +109,10 @@ RegisterNuiCallback("purchaseItems", function(data, cb)
 		weight = exports.ox_inventory:GetPlayerWeight(),
 		maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
 		money = {
-			Cash = QBX.PlayerData.money.cash,
-			Bank = QBX.PlayerData.money.bank
+			Cash = ESX.PlayerData.money.cash,
+			Bank = ESX.PlayerData.money.bank
 		},
-		licenses = QBX.PlayerData.metadata.licences
+		licenses = ESX.PlayerData.metadata.licences
 	})
 
 	cb(success)
@@ -229,6 +228,63 @@ CreateThread(function()
 		:: continue ::
 	end
 end)
+-- ESX Initialisierung
+ESX = exports['es_extended']:getSharedObject()
+
+-- Hilfsfunktion um PlayerData zu aktualisieren
+local function UpdatePlayerData()
+    ESX.PlayerData = ESX.GetPlayerData()
+end
+
+-- Beispiel für SendReactMessage mit ESX-Daten
+SendReactMessage("setSelfData", {
+    weight = exports.ox_inventory:GetPlayerWeight(),
+    maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
+    money = {
+        Cash = ESX.PlayerData.money,
+        Bank = ESX.PlayerData.accounts and ESX.PlayerData.accounts[1] and ESX.PlayerData.accounts[1].money or 0
+    },
+    job = {
+        name = ESX.PlayerData.job.name,
+        grade = ESX.PlayerData.job.grade
+    },
+    licenses = ESX.PlayerData.licenses -- ggf. musst du die Lizenzen separat holen!
+})
+
+-- Events anpassen
+RegisterNetEvent('esx:setAccountMoney')
+AddEventHandler('esx:setAccountMoney', function(account)
+    if not ShopOpen then return end
+    UpdatePlayerData()
+    SendReactMessage("setSelfData", {
+        money = {
+            Cash = ESX.PlayerData.money,
+            Bank = ESX.PlayerData.accounts and ESX.PlayerData.accounts[1] and ESX.PlayerData.accounts[1].money or 0
+        }
+    })
+end)
+
+RegisterNetEvent('esx:setJob')
+AddEventHandler('esx:setJob', function(job)
+    if not ShopOpen then return end
+    UpdatePlayerData()
+    SendReactMessage("setSelfData", {
+        job = {
+            name = ESX.PlayerData.job.name,
+            grade = ESX.PlayerData.job.grade
+        }
+    })
+end)
+
+-- Lizenzen musst du ggf. mit einem Server-Callback holen, z.B.:
+ESX.TriggerServerCallback('esx_license:getLicenses', function(licenses)
+    ESX.PlayerData.licenses = licenses
+    if ShopOpen then
+        SendReactMessage("setSelfData", {
+            licenses = licenses
+        })
+    end
+end)
 
 -- Event handlers
 
@@ -236,8 +292,8 @@ RegisterNetEvent('QBCore:Client:OnMoneyChange', function()
 	if not ShopOpen then return end
 	SendReactMessage("setSelfData", {
 		money = {
-			Cash = QBX.PlayerData.money.cash,
-			Bank = QBX.PlayerData.money.bank
+			Cash = ESX.PlayerData.money.cash,
+			Bank = ESX.PlayerData.money.bank
 		},
 	})
 end)
@@ -245,7 +301,7 @@ end)
 RegisterNetEvent('qbx_core:client:onSetMetaData', function(metadata)
 	if not metadata == 'licenses' or not ShopOpen then return end
 	SendReactMessage("setSelfData", {
-		licenses = QBX.PlayerData.metadata.licences
+		licenses = ESX.PlayerData.metadata.licences
 	})
 end)
 
@@ -254,8 +310,8 @@ RegisterNetEvent('qbx_core:client:onGroupUpdate', function()
 	Wait(5) -- Waiting for QBX to update job data
 	SendReactMessage("setSelfData", {
 		job = {
-			name = QBX.PlayerData.job.name,
-			grade = QBX.PlayerData.job.grade.level
+			name = ESX.PlayerData.job.name,
+			grade = ESX.PlayerData.job.grade.level
 		}
 	})
 end)
