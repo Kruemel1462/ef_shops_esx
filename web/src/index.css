@@ -13,13 +13,13 @@
 		--card-foreground: 240 10% 3.9%;
 		--popover: 0 0% 100%;
 		--popover-foreground: 240 10% 3.9%;
-		--primary: 240 5.9% 10%;
+                --primary: 270 50% 50%;
 		--primary-foreground: 0 0% 98%;
 		--secondary: 240 4.8% 95.9%;
 		--secondary-foreground: 240 5.9% 10%;
 		--muted: 240 4.8% 95.9%;
 		--muted-foreground: 240 3.8% 46.1%;
-		--accent: 240 4.8% 95.9%;
+                --accent: 270 60% 85%;
 		--accent-foreground: 240 5.9% 10%;
 		--destructive: 0 72.22% 50.59%;
 		--destructive-foreground: 0 0% 98%;
@@ -34,17 +34,17 @@
 		--chart-4: 43 74% 66%;
 		--chart-5: 27 87% 67%;
 
-		--color-everfall-50: 193 194 197;
-		--color-everfall-100: 166 167 171;
-		--color-everfall-200: 144 146 150;
-		--color-everfall-300: 92 95 102;
-		--color-everfall-400: 55 58 64;
-		--color-everfall-500: 44 46 51;
-		--color-everfall-600: 40 41 44;
-		--color-everfall-650: 36 37 40;
-		--color-everfall-700: 25 25 26;
-		--color-everfall-800: 18 19 19;
-		--color-everfall-900: 9 9 9;
+                --color-everfall-50: 250 245 255;
+                --color-everfall-100: 243 232 255;
+                --color-everfall-200: 233 213 255;
+                --color-everfall-300: 216 180 254;
+                --color-everfall-400: 192 132 252;
+                --color-everfall-500: 168 85 247;
+                --color-everfall-600: 147 51 234;
+                --color-everfall-650: 135 37 217;
+                --color-everfall-700: 126 34 206;
+                --color-everfall-800: 107 33 168;
+                --color-everfall-900: 59 7 100;
 	}
 
 	.dark {
@@ -54,14 +54,14 @@
 		--card-foreground: 0 0% 98%;
 		--popover: 240 10% 3.9%;
 		--popover-foreground: 0 0% 98%;
-		--primary: 0 0% 98%;
-		--primary-foreground: 240 5.9% 10%;
+                --primary: 270 60% 60%;
+                --primary-foreground: 0 0% 98%;
 		--secondary: 240 3.7% 15.9%;
 		--secondary-foreground: 0 0% 98%;
 		--muted: 240 3.7% 15.9%;
 		--muted-foreground: 240 5% 64.9%;
-		--accent: 240 3.7% 15.9%;
-		--accent-foreground: 0 0% 98%;
+                --accent: 270 40% 30%;
+                --accent-foreground: 0 0% 98%;
 		--destructive: 0 62.8% 30.6%;
 		--destructive-foreground: 0 85.7% 97.3%;
 		--border: 240 3.7% 15.9%;
