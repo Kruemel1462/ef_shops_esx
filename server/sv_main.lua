@@ -136,8 +136,8 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
 				ESX.TriggerServerCallback('esx_license:checkLicense', function(hasLicense)
 					if not hasLicense then
 						TriggerClientEvent('ox_lib:notify', source, { 
-							title = "License Required", 
-							description = "You do not have the license to purchase this item (" .. shopItem.license .. ").", 
+                                title = "Lizenz erforderlich",
+                                description = "Du besitzt nicht die Lizenz, um diesen Gegenstand (" .. shopItem.license .. ") zu kaufen.",
 							type = "error" 
 						})
 						return
@@ -147,8 +147,8 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
 
 			if not exports.ox_inventory:CanCarryItem(source, shopItem.name, mappedCartItem.quantity) then
 				TriggerClientEvent('ox_lib:notify', source, { 
-					title = "Inventory Full", 
-					description = "You cannot carry the requested quantity of " .. itemData.label .. "s.", 
+                                title = "Inventar voll",
+                                description = "Du kannst die angeforderte Menge von " .. itemData.label .. " nicht tragen.",
 					type = "error" 
 				})
 				goto continue
@@ -156,8 +156,8 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
 
 			if shopItem.count and (mappedCartItem.quantity > shopItem.count) then
 				TriggerClientEvent('ox_lib:notify', source, { 
-					title = "Out of Stock", 
-					description = "The requested amount of " .. itemData.label .. " is no longer in stock.", 
+                                title = "Nicht auf Lager",
+                                description = "Die gewünschte Menge von " .. itemData.label .. " ist nicht mehr vorrätig.",
 					type = "error" 
 				})
 				goto continue
@@ -166,16 +166,16 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
 			if shopItem.jobs then
 				if not shopItem.jobs[xPlayer.job.name] then
 					TriggerClientEvent('ox_lib:notify', source, { 
-						title = "Job Required", 
-						description = "You do not have the required job to purchase " .. itemData.label .. ".", 
+                                                title = "Job erforderlich",
+                                                description = "Du hast nicht den erforderlichen Job, um " .. itemData.label .. " zu kaufen.",
 						type = "error" 
 					})
 					goto continue
 				end
 				if shopItem.jobs[xPlayer.job.name] > xPlayer.job.grade then
 					TriggerClientEvent('ox_lib:notify', source, { 
-						title = "Grade Required", 
-						description = "You do not have the required grade to purchase " .. itemData.label .. ".", 
+                                                title = "Dienstgrad erforderlich",
+                                                description = "Du hast nicht den erforderlichen Dienstgrad, um " .. itemData.label .. " zu kaufen.",
 						type = "error" 
 					})
 					goto continue
@@ -200,12 +200,12 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
 	end
 	local purchaseReason = table.concat(itemStrings, "; ")
 
-	-- Geld abziehen (ESX)
+        -- Geld abziehen (ESX)
         if currency == "cash" then
                 if xPlayer.getMoney() < totalPrice then
                         TriggerClientEvent('ox_lib:notify', source, {
-                                title = "Insufficient Funds",
-                                description = "You do not have enough cash for this transaction.",
+                                title = "Nicht genug Geld",
+                                description = "Du hast nicht genug Bargeld für diesen Einkauf.",
                                 type = "error"
                         })
                         return false
@@ -215,8 +215,8 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
                 local bankAccount = xPlayer.getAccount('bank')
                 if not bankAccount or bankAccount.money < totalPrice then
                         TriggerClientEvent('ox_lib:notify', source, {
-                                title = "Insufficient Funds",
-                                description = "You do not have enough money in the bank for this transaction.",
+                                title = "Nicht genug Geld",
+                                description = "Du hast nicht genug Geld auf der Bank für diesen Einkauf.",
                                 type = "error"
                         })
                         return false
@@ -228,16 +228,27 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
                         account = acc
                 end)
 
+                local minGrade = shopData.societyGrade or 0
+                if xPlayer.job.grade < minGrade then
+                        TriggerClientEvent('ox_lib:notify', source, {
+                                title = "Berechtigung fehlt",
+                                description = "Du darfst das Society-Konto nicht verwenden.",
+                                type = "error"
+                        })
+                        return false
+                end
+
                 if not account or account.money < totalPrice then
                         TriggerClientEvent('ox_lib:notify', source, {
-                                title = "Insufficient Funds",
-                                description = "Your society does not have enough money for this transaction.",
+                                title = "Nicht genug Geld",
+                                description = "Deine Society hat nicht genug Geld für diesen Einkauf.",
                                 type = "error"
                         })
                         return false
                 end
 
                 account.removeMoney(totalPrice)
+                TriggerClientEvent('EF-Shops:Client:SetSocietyMoney', source, account.money)
         else
                 lib.print.error("Invalid currency type used in purchase: " .. tostring(currency))
                 return false

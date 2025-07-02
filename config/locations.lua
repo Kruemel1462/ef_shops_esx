@@ -5,6 +5,7 @@
 ---@field shopItems string which table to pull shop items from
 ---@field blip? { sprite: number, color: number, scale?: number, disabled: boolean } blip data for the shop
 ---@field jobs? table<string, number> map of group names to min grade required to access the shop
+---@field societyGrade? number minimum job grade to pay with society money
 ---@field target? { label?: string, radius?: number, icon?: string } target data for the shop
 
 ---@type table<string, ShopLocation>
@@ -84,9 +85,10 @@ return {
 	},
 
 	-- Hardware Store Locations
-	hardware = {
-		label = "Hardware Store",
-		model = {
+        hardware = {
+                label = "Hardware Store",
+                societyGrade = 1,
+                model = {
 			`s_m_m_autoshop_02`,
 			`S_F_M_Autoshop_01`,
 			`S_M_M_AutoShop_01`,
@@ -112,9 +114,10 @@ return {
 	},
 
 	-- Ammunation Locations
-	ammunation = {
-		label = "Ammunation",
-		target = { label = "Open Ammunation" },
+        ammunation = {
+                label = "Ammunation",
+                societyGrade = 2,
+                target = { label = "Ammunation öffnen" },
 		model = {
 			`S_M_M_AmmuCountry`,
 			`S_M_Y_AmmuCity_01`,
