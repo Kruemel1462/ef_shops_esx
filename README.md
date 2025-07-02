@@ -1,5 +1,5 @@
 # ef-shops
-A shops system made in React for qbx_core and ox_inventory
+A shops system made in React for es_extended and ox_inventory
 
 ![FiveM_b2944_GTAProcess - April22 - 03 01 - 3496](https://github.com/jellyton69/ef_shops/assets/20498875/38df9b9b-8e3a-49e5-a12f-04f56d6fa132)
 
