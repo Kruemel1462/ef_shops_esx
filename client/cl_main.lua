@@ -15,6 +15,7 @@ local Blips = {}
 local NearbyShops = {} -- Neue Tabelle für nahegelegene Shops
 
 ShopOpen = false
+local societyMoney = 0
 
 local scenarios = {
 	"WORLD_HUMAN_VALET",
@@ -63,12 +64,10 @@ local function GetPlayerMoney()
         cashMoney = ESX.PlayerData.money
     end
     
-    local societyMoney = lib.callback.await('EF-Shops:Server:GetSocietyMoney', false)
-
     return {
         Cash = cashMoney,
         Bank = bankMoney,
-        Society = societyMoney or 0
+        Society = societyMoney
     }
 end
 
@@ -99,30 +98,30 @@ local function openShop(data)
 	-- Job-Prüfung für ESX
 	if shopData.jobs then
 		local playerJob = ESX.PlayerData.job
-		if not playerJob then
-			lib.notify({ title = "Shop Access", description = "You do not have access to this shop.", type = "error" })
-			return
-		end
+                if not playerJob then
+                        lib.notify({ title = "Shop-Zugang", description = "Du hast keinen Zugriff auf diesen Shop.", type = "error" })
+                        return
+                end
 		
 		if shopData.jobs[playerJob.name] and shopData.jobs[playerJob.name] <= playerJob.grade then
 			-- Access granted
 		else
-			lib.notify({ title = "Shop Access", description = "You do not have access to this shop.", type = "error" })
-			return
-		end
+                        lib.notify({ title = "Shop-Zugang", description = "Du hast keinen Zugriff auf diesen Shop.", type = "error" })
+                        return
+                end
 	end
 
 	setShopVisible(true)
 
-	local shopItems = lib.callback.await("EF-Shops:Server:OpenShop", false, data.type, data.location)
+        local shopItems = lib.callback.await("EF-Shops:Server:OpenShop", false, data.type, data.location)
 
-	if not shopItems then
+        if not shopItems then
 		lib.print.error("Failed opening shop: " .. data.type)
 		setShopVisible(false)
 		return
-	end
+        end
 
-	for _, item in pairs(shopItems) do
+        for _, item in pairs(shopItems) do
 		local productData = PRODUCTS[shopData.shopItems][item.id]
 
 		item.label = productData.metadata?.label or ITEMS[item.name]?.label
@@ -130,9 +129,11 @@ local function openShop(data)
 		item.category = productData.category
 		item.imagePath = productData.metadata?.imageurl or GetItemIcon(item.name)
 		item.jobs = productData.jobs
-	end
+        end
 
-	UpdatePlayerData()
+        societyMoney = lib.callback.await('EF-Shops:Server:GetSocietyMoney', false)
+
+        UpdatePlayerData()
 
 	SendReactMessage("setSelfData", {
 		weight = exports.ox_inventory:GetPlayerWeight(),
@@ -167,7 +168,7 @@ end
 
 -- Neue Funktion um Text-UI anzuzeigen
 local function ShowShopText(shopData)
-    lib.showTextUI('[E] - ' .. (shopData.target?.label or "Browse Shop"), {
+    lib.showTextUI('[E] - ' .. (shopData.target?.label or "Shop öffnen"), {
         position = "top-center",
         icon = shopData.target?.icon or "fas fa-cash-register"
     })
@@ -183,16 +184,16 @@ exports("OpenShop", function(type)
 end)
 
 RegisterNuiCallback("purchaseItems", function(data, cb)
-	if not data then
-		lib.notify({ title = "Purchase Failed", description = "An error occurred while trying to purchase items.", type = "error" })
-		return
-	end
+        if not data then
+                lib.notify({ title = "Kauf fehlgeschlagen", description = "Beim Kauf ist ein Fehler aufgetreten.", type = "error" })
+                return
+        end
 
 	local success = lib.callback.await("EF-Shops:Server:PurchaseItems", false, data)
 
-	if not success then
-		lib.notify({ title = "Purchase Failed", description = "An error occurred while trying to purchase items.", type = "error" })
-	end
+        if not success then
+                lib.notify({ title = "Kauf fehlgeschlagen", description = "Beim Kauf ist ein Fehler aufgetreten.", type = "error" })
+        end
 
 	UpdatePlayerData()
 	SendReactMessage("setSelfData", {
@@ -462,6 +463,12 @@ AddEventHandler('ox_inventory:updateInventory', function()
 	})
 end)
 
+RegisterNetEvent('EF-Shops:Client:SetSocietyMoney')
+AddEventHandler('EF-Shops:Client:SetSocietyMoney', function(amount)
+    societyMoney = amount
+    UpdateShopData()
+end)
+
 AddEventHandler('onResourceStop', function(resource)
 	if resource ~= GetCurrentResourceName() then return end
 
@@ -485,14 +492,4 @@ AddEventHandler('onResourceStop', function(resource)
 
 	-- Text-UI verstecken beim Resource-Stop
 	HideShopText()
-end)
-
--- Timer für regelmäßige Geld-Updates
-CreateThread(function()
-    while true do
-        if ShopOpen then
-            UpdateShopData()
-        end
-        Wait(2000) -- Alle 2 Sekunden aktualisieren
-    end
 end)
