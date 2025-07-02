@@ -41,7 +41,7 @@ local function GetPlayerMoney()
     ESX.PlayerData = ESX.GetPlayerData()
     
     if not ESX.PlayerData then
-        return { Cash = 0, Bank = 0 }
+        return { Cash = 0, Bank = 0, Society = 0 }
     end
     
     local cashMoney = 0
@@ -63,9 +63,12 @@ local function GetPlayerMoney()
         cashMoney = ESX.PlayerData.money
     end
     
+    local societyMoney = lib.callback.await('EF-Shops:Server:GetSocietyMoney', false)
+
     return {
         Cash = cashMoney,
-        Bank = bankMoney
+        Bank = bankMoney,
+        Society = societyMoney or 0
     }
 end
 

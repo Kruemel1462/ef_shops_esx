@@ -50,12 +50,24 @@ local function registerShop(shopType, shopData)
 end
 
 lib.callback.register("EF-Shops:Server:OpenShop", function(source, shop_type, location)
-	local shop = ShopData[shop_type] and ShopData[shop_type][location]
-	if not shop then
-		lib.print.error("Shop not found: " .. shop_type .. " at location " .. location)
-		return nil
-	end
-	return shop.inventory
+        local shop = ShopData[shop_type] and ShopData[shop_type][location]
+        if not shop then
+                lib.print.error("Shop not found: " .. shop_type .. " at location " .. location)
+                return nil
+        end
+        return shop.inventory
+end)
+
+lib.callback.register("EF-Shops:Server:GetSocietyMoney", function(source)
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if not xPlayer then return 0 end
+
+        local account
+        TriggerEvent('esx_addonaccount:getSharedAccount', 'society_' .. xPlayer.job.name, function(acc)
+                account = acc
+        end)
+
+        return account and account.money or 0
 end)
 
 local mapBySubfield = function(tbl, subfield)
@@ -189,28 +201,47 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
 	local purchaseReason = table.concat(itemStrings, "; ")
 
 	-- Geld abziehen (ESX)
-	if currency == "cash" then
-		if xPlayer.getMoney() < totalPrice then
-			TriggerClientEvent('ox_lib:notify', source, { 
-				title = "Insufficient Funds", 
-				description = "You do not have enough cash for this transaction.", 
-				type = "error" 
-			})
-			return false
-		end
-		xPlayer.removeMoney(totalPrice)
-	else
-		local bankAccount = xPlayer.getAccount('bank')
-		if not bankAccount or bankAccount.money < totalPrice then
-			TriggerClientEvent('ox_lib:notify', source, { 
-				title = "Insufficient Funds", 
-				description = "You do not have enough money in the bank for this transaction.", 
-				type = "error" 
-			})
-			return false
-		end
-		xPlayer.removeAccountMoney('bank', totalPrice)
-	end
+        if currency == "cash" then
+                if xPlayer.getMoney() < totalPrice then
+                        TriggerClientEvent('ox_lib:notify', source, {
+                                title = "Insufficient Funds",
+                                description = "You do not have enough cash for this transaction.",
+                                type = "error"
+                        })
+                        return false
+                end
+                xPlayer.removeMoney(totalPrice)
+        elseif currency == "card" then
+                local bankAccount = xPlayer.getAccount('bank')
+                if not bankAccount or bankAccount.money < totalPrice then
+                        TriggerClientEvent('ox_lib:notify', source, {
+                                title = "Insufficient Funds",
+                                description = "You do not have enough money in the bank for this transaction.",
+                                type = "error"
+                        })
+                        return false
+                end
+                xPlayer.removeAccountMoney('bank', totalPrice)
+        elseif currency == "society" then
+                local account
+                TriggerEvent('esx_addonaccount:getSharedAccount', 'society_' .. xPlayer.job.name, function(acc)
+                        account = acc
+                end)
+
+                if not account or account.money < totalPrice then
+                        TriggerClientEvent('ox_lib:notify', source, {
+                                title = "Insufficient Funds",
+                                description = "Your society does not have enough money for this transaction.",
+                                type = "error"
+                        })
+                        return false
+                end
+
+                account.removeMoney(totalPrice)
+        else
+                lib.print.error("Invalid currency type used in purchase: " .. tostring(currency))
+                return false
+        end
 
 	local dropItems = {}
 	for i = 1, #validCartItems do

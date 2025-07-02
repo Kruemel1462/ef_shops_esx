@@ -3,7 +3,7 @@ import ShopGrid from "./ShopGrid";
 import { fetchNui } from "../utils/fetchNui";
 import { useStoreShop } from "../stores/ShopStore";
 import { useStoreSelf } from "../stores/PlayerDataStore";
-import { faCreditCard, faMoneyBill1Wave, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faCreditCard, faMoneyBill1Wave, faXmark, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { formatMoney, isEnvBrowser } from "../utils/misc";
 import { Skeleton } from "./ui/skeleton";
@@ -29,18 +29,22 @@ function PlayerData() {
 
 	if (!PlayerData) return null;
 
-	return (
-		<div className="flex gap-2">
-			<p className="flex items-center gap-2 rounded-md bg-green-700/20 px-5 py-1 text-lg font-bold leading-none text-green-400">
-				<FontAwesomeIcon size="xl" icon={faMoneyBill1Wave} />
-				{"$" + formatMoney(Money.Cash)}
-			</p>
-			<p className="flex items-center gap-2 rounded-md bg-blue-600/20 px-5 py-1 text-lg font-bold leading-none text-blue-400">
-				<FontAwesomeIcon size="xl" icon={faCreditCard} />
-				{"$" + formatMoney(Money.Bank)}
-			</p>
-		</div>
-	);
+        return (
+                <div className="flex gap-2">
+                        <p className="flex items-center gap-2 rounded-md bg-green-700/20 px-5 py-1 text-lg font-bold leading-none text-green-400">
+                                <FontAwesomeIcon size="xl" icon={faMoneyBill1Wave} />
+                                {"$" + formatMoney(Money.Cash)}
+                        </p>
+                        <p className="flex items-center gap-2 rounded-md bg-blue-600/20 px-5 py-1 text-lg font-bold leading-none text-blue-400">
+                                <FontAwesomeIcon size="xl" icon={faCreditCard} />
+                                {"$" + formatMoney(Money.Bank)}
+                        </p>
+                        <p className="flex items-center gap-2 rounded-md bg-orange-600/20 px-5 py-1 text-lg font-bold leading-none text-orange-400">
+                                <FontAwesomeIcon size="xl" icon={faUsers} />
+                                {"$" + formatMoney(Money.Society)}
+                        </p>
+                </div>
+        );
 }
 
 export default function ShopInterface() {

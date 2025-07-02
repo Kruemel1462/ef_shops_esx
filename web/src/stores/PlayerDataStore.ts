@@ -1,8 +1,9 @@
 import { create } from "zustand";
 
 type Money = {
-	Cash: number;
-	Bank: number;
+        Cash: number;
+        Bank: number;
+        Society: number;
 };
 
 type Job = {
@@ -11,22 +12,23 @@ type Job = {
 };
 
 type SelfData = {
-	Weight: number;
-	MaxWeight: number;
-	Money: Money;
-	Job: Job;
-	Licenses: Record<string, boolean> | null;
-	setSelfData: (config: { weight?: number; maxWeight?: number; money?: Money; licenses?: Record<string, boolean>; job: Job }) => void;
+        Weight: number;
+        MaxWeight: number;
+        Money: Money;
+        Job: Job;
+        Licenses: Record<string, boolean> | null;
+        setSelfData: (config: { weight?: number; maxWeight?: number; money?: Money; licenses?: Record<string, boolean>; job: Job }) => void;
 };
 
 export const useStoreSelf = create<SelfData>((set) => ({
 	// Initial State
 	Weight: null,
 	MaxWeight: null,
-	Money: {
-		Cash: null,
-		Bank: null,
-	},
+        Money: {
+                Cash: null,
+                Bank: null,
+                Society: null,
+        },
 	Job: {
 		name: null,
 		grade: null,
