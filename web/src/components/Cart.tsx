@@ -1,4 +1,4 @@
-import { faBasketShopping, faCreditCard, faFaceFrown, faMoneyBill1Wave, faWeightHanging, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faBasketShopping, faCreditCard, faFaceFrown, faMoneyBill1Wave, faWeightHanging, faXmark, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useStoreShop } from "../stores/ShopStore";
 import { formatMoney } from "../utils/misc";
@@ -30,12 +30,14 @@ function PaymentButtons() {
 	const { Money, Weight, MaxWeight } = useStoreSelf();
 
 	const { ShopItems, CurrentShop, clearCart, setShopItems } = useStoreShop();
-	const [awaitingPaymentCash, setAwaitingPaymentCash] = useState(false);
-	const [awaitingPaymentCard, setAwaitingPaymentCard] = useState(false);
+        const [awaitingPaymentCash, setAwaitingPaymentCash] = useState(false);
+        const [awaitingPaymentCard, setAwaitingPaymentCard] = useState(false);
+        const [awaitingPaymentSociety, setAwaitingPaymentSociety] = useState(false);
 
-	const canAffordCash = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) <= Money.Cash;
-	const canAffordCard = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) <= Money.Bank;
-	const overWeight = Weight + cartWeight > MaxWeight;
+        const canAffordCash = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) <= Money.Cash;
+        const canAffordCard = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) <= Money.Bank;
+        const canAffordSociety = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) <= Money.Society;
+        const overWeight = Weight + cartWeight > MaxWeight;
 
 	function finishPurchase() {
 		const updatedShopItems = ShopItems.map((shopItem) => {
@@ -54,11 +56,11 @@ function PaymentButtons() {
 	}
 
 	return (
-		<div className="flex w-full flex-col justify-between">
-			{(awaitingPaymentCash || awaitingPaymentCard) && <div className="container" />}
+                <div className="flex w-full flex-col justify-between">
+                        {(awaitingPaymentCash || awaitingPaymentCard || awaitingPaymentSociety) && <div className="container" />}
 			<TooltipProvider delayDuration={0} disableHoverableContent>
 				<div className="flex w-full">
-					<Tooltip>
+                                        <Tooltip>
 						<TooltipPortal>
 							{CartItems && CartItems.length > 0 && (
 								<TooltipContent
@@ -77,10 +79,10 @@ function PaymentButtons() {
 							<Button
 								className="grow bg-green-700/20 text-green-300 hover:bg-green-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:hover:bg-green-700/20"
 								variant="secondary"
-								data-disabled={!CartItems || CartItems.length == 0 || !canAffordCash || awaitingPaymentCard || overWeight}
+                                                                data-disabled={!CartItems || CartItems.length == 0 || !canAffordCash || awaitingPaymentCard || awaitingPaymentSociety || overWeight}
 								style={{ borderBottomRightRadius: 0, borderTopRightRadius: 0 }}
-								onClick={() => {
-									if (!CartItems || CartItems.length == 0 || !canAffordCash || awaitingPaymentCard || overWeight) return;
+                                                                onClick={() => {
+                                                                        if (!CartItems || CartItems.length == 0 || !canAffordCash || awaitingPaymentCard || awaitingPaymentSociety || overWeight) return;
 
 									setAwaitingPaymentCash(true);
 									fetchNui("purchaseItems", { items: CartItems, shop: CurrentShop, currency: "cash" }, true).then((res) => {
@@ -115,10 +117,10 @@ function PaymentButtons() {
 							<Button
 								className="grow bg-blue-700/20 text-blue-300 hover:bg-blue-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:hover:bg-blue-700/20"
 								variant="secondary"
-								data-disabled={!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || overWeight}
+                                                                data-disabled={!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || awaitingPaymentSociety || overWeight}
 								style={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0 }}
-								onClick={() => {
-									if (!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || overWeight) return;
+                                                                onClick={() => {
+                                                                        if (!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || awaitingPaymentSociety || overWeight) return;
 
 									setAwaitingPaymentCard(true);
 									fetchNui("purchaseItems", { items: CartItems, shop: CurrentShop, currency: "card" }, true).then((res) => {
@@ -133,8 +135,46 @@ function PaymentButtons() {
 								{awaitingPaymentCash ? <Loader /> : <FontAwesomeIcon size="lg" icon={faCreditCard} />}
 							</Button>
 						</TooltipTrigger>
-					</Tooltip>
-				</div>
+                                        </Tooltip>
+                                        <Tooltip>
+                                                <TooltipPortal>
+                                                        {CartItems && CartItems.length > 0 && (
+                                                                <TooltipContent
+                                                                        side="top"
+                                                                        sideOffset={5}
+                                                                        className={cn(
+                                                                                "rounded-md",
+                                                                                (canAffordSociety && !overWeight && "bg-orange-700/20 text-orange-300") || "bg-red-700/20 text-red-300",
+                                                                        )}
+                                                                >
+                                                                        {getToolTip(canAffordSociety, overWeight) || "Bezahlen mit Society"}
+                                                                </TooltipContent>
+                                                        )}
+                                                </TooltipPortal>
+                                                <TooltipTrigger asChild>
+                                                        <Button
+                                                                className="grow bg-orange-700/20 text-orange-300 hover:bg-orange-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:hover:bg-orange-700/20"
+                                                                variant="secondary"
+                                                                data-disabled={!CartItems || CartItems.length == 0 || !canAffordSociety || awaitingPaymentCash || awaitingPaymentCard || overWeight}
+                                                                style={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0 }}
+                                                                onClick={() => {
+                                                                        if (!CartItems || CartItems.length == 0 || !canAffordSociety || awaitingPaymentCash || awaitingPaymentCard || overWeight) return;
+
+                                                                        setAwaitingPaymentSociety(true);
+                                                                        fetchNui("purchaseItems", { items: CartItems, shop: CurrentShop, currency: "society" }, true).then((res) => {
+                                                                                setAwaitingPaymentSociety(false);
+                                                                                if (res) {
+                                                                                        finishPurchase();
+                                                                                        clearCart();
+                                                                                }
+                                                                        });
+                                                                }}
+                                                        >
+                                                                {awaitingPaymentSociety ? <Loader /> : <FontAwesomeIcon size="lg" icon={faUsers} />}
+                                                        </Button>
+                                                </TooltipTrigger>
+                                        </Tooltip>
+                                </div>
 				<p className="mt-1 flex items-center justify-center gap-1 rounded-sm bg-indigo-800/20 px-2 py-1 text-lg font-medium text-indigo-400">
 					<FontAwesomeIcon size="xs" icon={faWeightHanging} />
 					{formatWeight(Weight) + "kg"}
@@ -187,8 +227,9 @@ export default function Cart() {
 									price * (value - item.quantity);
 								const newCartWeight = Weight + cartWeight + (storeItem.weight || 0) * (value - item.quantity);
 
-								const canAffordCash = newCartValue <= Money.Cash;
-								const canAffordCard = newCartValue <= Money.Bank;
+                                                                               const canAffordCash = newCartValue <= Money.Cash;
+                                                                               const canAffordCard = newCartValue <= Money.Bank;
+                                                                               const canAffordSociety = newCartValue <= Money.Society;
 								const overWeight = newCartWeight > MaxWeight;
 
 								if (overWeight) {
@@ -198,7 +239,7 @@ export default function Cart() {
 									return;
 								}
 
-								if (!canAffordCash && !canAffordCard) {
+                                                                               if (!canAffordCash && !canAffordCard && !canAffordSociety) {
 									toast.error(`You cannot add anymore of: ${storeItem.label} to your cart, you cannot afford it!`, {
 										icon: <FontAwesomeIcon icon={faMoneyBill1Wave} />,
 									});

@@ -9,7 +9,10 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 	const { addItemToCart, cartValue, cartWeight, CartItems } = useStoreShop();
 	const { Weight, MaxWeight, Money, Licenses, Job } = useStoreSelf();
 
-	const canNotAfford = cartValue + item.price > Money.Cash && cartValue + item.price > Money.Bank;
+        const canNotAfford =
+                cartValue + item.price > Money.Cash &&
+                cartValue + item.price > Money.Bank &&
+                cartValue + item.price > Money.Society;
 	const overWeight = Weight + cartWeight + (item.weight || 0) > MaxWeight;
 	const currentItemQuantityInCart = CartItems.reduce((total, cartItem) => {
 		return cartItem.id === item.id ? total + cartItem.quantity : total;
