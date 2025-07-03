@@ -215,9 +215,14 @@ end)
 
 RegisterNUICallback("startRobbery", function(_, cb)
         cb(1)
+        local remain = lib.callback.await('Paragon-Shops:Server:GetRobberyCooldown', false)
+        if remain and remain > 0 then
+                robberyCooldown = GetGameTimer() + remain
+        end
+
         if GetGameTimer() < robberyCooldown then
-                local remain = math.ceil((robberyCooldown - GetGameTimer()) / 1000)
-                lib.notify({ description = ('Du musst noch %s Sekunden warten.'):format(remain), type = 'error' })
+                local r = math.ceil((robberyCooldown - GetGameTimer()) / 1000)
+                lib.notify({ description = ('Du musst noch %s Sekunden warten.'):format(r), type = 'error' })
                 return
         end
 
@@ -235,18 +240,29 @@ RegisterNUICallback("startRobbery", function(_, cb)
 
         isRobbing = true
         lib.showTextUI('[G] - Raub abbrechen', { position = 'top-center' })
-        while (GetGameTimer() - startTime) < duration do
-                Wait(0)
-                if IsControlJustReleased(0, config.robbery.abortControl or 47) then
-                        aborted = true
-                        break
-                end
+        CreateThread(function()
+                while isRobbing do
+                        Wait(0)
+                        if IsControlJustReleased(0, config.robbery.abortControl or 47) then
+                                aborted = true
+                                lib.cancelProgress()
+                                break
+                        end
 
-                if #(GetEntityCoords(cache.ped) - origin) > (config.robbery.maxDistance or 20.0) then
-                        aborted = true
-                        break
+                        if #(GetEntityCoords(cache.ped) - origin) > (config.robbery.maxDistance or 20.0) then
+                                aborted = true
+                                lib.cancelProgress()
+                                break
+                        end
                 end
-        end
+        end)
+
+        lib.progressCircle({
+                duration = duration,
+                position = 'bottom',
+                label = config.robbery.progressLabel or 'Raub läuft...'
+        })
+
         lib.hideTextUI()
         isRobbing = false
 
@@ -429,6 +445,10 @@ RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
     ESX.PlayerData = xPlayer
     UpdateShopData()
+    local remain = lib.callback.await('Paragon-Shops:Server:GetRobberyCooldown', false)
+    if remain and remain > 0 then
+        robberyCooldown = GetGameTimer() + remain
+    end
 end)
 
 RegisterNetEvent('esx:setJob')

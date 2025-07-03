@@ -9,6 +9,17 @@ local config = require 'config.config'
 
 local lastRobbery = {}
 
+local function loadCooldowns()
+        local data = GetResourceKvpString('paragon_shops_cooldowns')
+        if data then
+                lastRobbery = json.decode(data) or {}
+        end
+end
+
+local function saveCooldowns()
+        SetResourceKvp('paragon_shops_cooldowns', json.encode(lastRobbery))
+end
+
 ---Dispatch helper
 ---@param coords vector3
 local function sendPoliceDispatch(coords)
@@ -71,6 +82,11 @@ lib.callback.register("Paragon-Shops:Server:OpenShop", function(source, shop_typ
         return shop.inventory
 end)
 
+AddEventHandler('onResourceStop', function(resource)
+        if GetCurrentResourceName() ~= resource then return end
+        saveCooldowns()
+end)
+
 RegisterNetEvent('Paragon-Shops:Server:RobberyStarted', function(shopId, location)
     local shopData = LOCATIONS[shopId]
     if not shopData or not shopData.coords or not shopData.coords[location] then return end
@@ -87,15 +103,28 @@ RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress)
     if not xPlayer then return end
 
     local now = os.time() * 1000
-    if lastRobbery[src] and now - lastRobbery[src] < (config.robbery.cooldown or 60000) then
+    local id = xPlayer.identifier
+    if lastRobbery[id] and now - lastRobbery[id] < (config.robbery.cooldown or 60000) then
         return
     end
-    lastRobbery[src] = now
+    lastRobbery[id] = now
+    saveCooldowns()
 
     local amount = math.floor((config.robbery.reward or 0) * (progress or 0))
     if amount > 0 then
         xPlayer.addMoney(amount)
     end
+end)
+
+lib.callback.register('Paragon-Shops:Server:GetRobberyCooldown', function(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return 0 end
+
+    local id = xPlayer.identifier
+    local now = os.time() * 1000
+    local last = lastRobbery[id] or 0
+    local remain = (config.robbery.cooldown or 60000) - (now - last)
+    return remain > 0 and remain or 0
 end)
 
 lib.callback.register("Paragon-Shops:Server:GetSocietyMoney", function(source, shopId)
@@ -375,7 +404,11 @@ lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, pur
 end)
 
 AddEventHandler('onResourceStart', function(resource)
-	if GetCurrentResourceName() ~= resource and "ox_inventory" ~= resource then return end
+        if GetCurrentResourceName() ~= resource and "ox_inventory" ~= resource then return end
+
+        if GetCurrentResourceName() == resource then
+                loadCooldowns()
+        end
 
 	-- Validate items exist in ox_inventory
 	for productType, productData in pairs(PRODUCTS) do
