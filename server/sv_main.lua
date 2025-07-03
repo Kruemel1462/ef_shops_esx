@@ -58,6 +58,17 @@ lib.callback.register("Paragon-Shops:Server:OpenShop", function(source, shop_typ
         return shop.inventory
 end)
 
+RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer then return end
+
+    local amount = math.floor((config.robbery.reward or 0) * (progress or 0))
+    if amount > 0 then
+        xPlayer.addMoney(amount)
+    end
+end)
+
 lib.callback.register("Paragon-Shops:Server:GetSocietyMoney", function(source, shopId)
         local xPlayer = ESX.GetPlayerFromId(source)
         if not xPlayer then return 0 end

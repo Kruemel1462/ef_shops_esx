@@ -4,6 +4,8 @@ if not lib.checkDependency('ox_inventory', '2.20.0') then error() end
 -- ESX Initialisierung
 ESX = exports['es_extended']:getSharedObject()
 
+local config = require 'config.config'
+
 local PRODUCTS = require 'config.shop_items' ---@type table<string, table<string, ShopItem>>
 local LOCATIONS = require 'config.locations' ---@type type<string, ShopLocation>
 
@@ -203,7 +205,24 @@ RegisterNuiCallback("purchaseItems", function(data, cb)
 		licenses = GetPlayerLicenses()
 	})
 
-	cb(success)
+        cb(success)
+end)
+
+RegisterNUICallback("startRobbery", function(_, cb)
+        cb(1)
+        setShopVisible(false)
+        Wait(100)
+        local duration = config.robbery.duration or 10000
+        local startTime = GetGameTimer()
+        lib.progressCircle({
+                duration = duration,
+                position = 'bottom',
+                label = 'Shop ausrauben...'
+        })
+
+        local elapsed = GetGameTimer() - startTime
+        local progress = math.min(elapsed / duration, 1.0)
+        TriggerServerEvent('Paragon-Shops:Server:RobberyReward', progress)
 end)
 
 -- Frame Callbacks
