@@ -12,8 +12,10 @@ local LOCATIONS = require 'config.locations' ---@type type<string, ShopLocation>
 local ITEMS = exports.ox_inventory:Items()
 
 local Vendors = {}
+local VendorScenarios = {}
 local Points = {}
 local Blips = {}
+local DispatchBlips = {}
 local NearbyShops = {} -- Neue Tabelle für nahegelegene Shops
 
 ShopOpen = false
@@ -23,12 +25,26 @@ local robberyCooldown = 0
 local isRobbing = false
 
 local scenarios = {
-	"WORLD_HUMAN_VALET",
-	"WORLD_HUMAN_AA_COFFEE",
-	"WORLD_HUMAN_GUARD_STAND_CASINO",
-	"WORLD_HUMAN_GUARD_PATROL",
-	"PROP_HUMAN_STAND_IMPATIENT",
+        "WORLD_HUMAN_VALET",
+        "WORLD_HUMAN_AA_COFFEE",
+        "WORLD_HUMAN_GUARD_STAND_CASINO",
+        "WORLD_HUMAN_GUARD_PATROL",
+        "PROP_HUMAN_STAND_IMPATIENT",
 }
+
+local function playFearAnim(ped)
+    if not ped or ped == 0 then return end
+    lib.requestAnimDict('missminuteman_1ig_2')
+    TaskPlayAnim(ped, 'missminuteman_1ig_2', 'handsup_base', 8.0, -8.0, -1, 49, 0, false, false, false)
+end
+
+local function restoreVendorAnim(vendorKey)
+    local ped = Vendors[vendorKey]
+    if not ped or ped == 0 or not DoesEntityExist(ped) then return end
+    ClearPedTasks(ped)
+    local scenario = VendorScenarios[vendorKey] or scenarios[1]
+    TaskStartScenarioInPlace(ped, scenario, -1, true)
+end
 
 local function setShopVisible(shouldShow)
 	ShopOpen = shouldShow
@@ -230,9 +246,16 @@ RegisterNUICallback("startRobbery", function(_, cb)
 
         TriggerServerEvent('Paragon-Shops:Server:RobberyStarted', CurrentShop.id, CurrentShop.location)
 
+        local vendorKey = CurrentShop.id .. CurrentShop.location
+        playFearAnim(Vendors[vendorKey])
+
         setShopVisible(false)
         Wait(100)
         local duration = config.robbery.duration or 10000
+        CreateThread(function()
+                Wait(duration + (config.robbery.cooldown or 60000))
+                restoreVendorAnim(vendorKey)
+        end)
         local shopCoords = LOCATIONS[CurrentShop.id].coords[CurrentShop.location]
         local origin = vector3(shopCoords.x, shopCoords.y, shopCoords.z)
         local startTime = GetGameTimer()
@@ -318,21 +341,25 @@ CreateThread(function()
 			if model then -- Create entity
 				local createEntity
 				local deleteEntity
-				if IsModelAPed(model) then
-					function createEntity()
-						Vendors[shopID .. locationIndex] = CreatePed(0, model, locationCoords.x, locationCoords.y, locationCoords.z - 1.0, locationCoords.w, false, false)
-						SetEntityInvincible(Vendors[shopID .. locationIndex], true)
-						TaskStartScenarioInPlace(Vendors[shopID .. locationIndex], storeData.scenario or scenarios[math.random(1, #scenarios)], -1, true)
-						SetBlockingOfNonTemporaryEvents(Vendors[shopID .. locationIndex], true)
-						SetEntityNoCollisionEntity(Vendors[shopID .. locationIndex], cache.ped, false)
-						FreezeEntityPosition(Vendors[shopID .. locationIndex], true)
-					end
+                                if IsModelAPed(model) then
+                                        function createEntity()
+                                                Vendors[shopID .. locationIndex] = CreatePed(0, model, locationCoords.x, locationCoords.y, locationCoords.z - 1.0, locationCoords.w, false, false)
+                                                SetEntityInvincible(Vendors[shopID .. locationIndex], true)
+                                                local scen = storeData.scenario or scenarios[math.random(1, #scenarios)]
+                                                VendorScenarios[shopID .. locationIndex] = scen
+                                                TaskStartScenarioInPlace(Vendors[shopID .. locationIndex], scen, -1, true)
+                                                SetBlockingOfNonTemporaryEvents(Vendors[shopID .. locationIndex], true)
+                                                SetEntityNoCollisionEntity(Vendors[shopID .. locationIndex], cache.ped, false)
+                                                FreezeEntityPosition(Vendors[shopID .. locationIndex], true)
+                                        end
 
-					function deleteEntity()
-						if DoesEntityExist(Vendors[shopID .. locationIndex]) then
-							DeletePed(Vendors[shopID .. locationIndex])
-						end
-					end
+                                        function deleteEntity()
+                                                if DoesEntityExist(Vendors[shopID .. locationIndex]) then
+                                                        DeletePed(Vendors[shopID .. locationIndex])
+                                                end
+                                                Vendors[shopID .. locationIndex] = nil
+                                                VendorScenarios[shopID .. locationIndex] = nil
+                                        end
 				else
 					function createEntity()
 						Vendors[shopID .. locationIndex] = CreateObject(model, locationCoords.x, locationCoords.y, locationCoords.z - 1.03, false, false, false)
@@ -340,12 +367,14 @@ CreateThread(function()
 						FreezeEntityPosition(Vendors[shopID .. locationIndex], true)
 					end
 
-					function deleteEntity()
-						if DoesEntityExist(Vendors[shopID .. locationIndex]) then
-							DeleteEntity(Vendors[shopID .. locationIndex])
-						end
-					end
-				end
+                                        function deleteEntity()
+                                                if DoesEntityExist(Vendors[shopID .. locationIndex]) then
+                                                        DeleteEntity(Vendors[shopID .. locationIndex])
+                                                end
+                                                Vendors[shopID .. locationIndex] = nil
+                                                VendorScenarios[shopID .. locationIndex] = nil
+                                        end
+                               end
 
 				-- Point System für Nähe-Erkennung
 				local point = lib.points.new(locationCoords, 25)
@@ -560,9 +589,13 @@ AddEventHandler('onResourceStop', function(resource)
 		point:remove()
 	end
 
-	for _, blip in ipairs(Blips) do
-		RemoveBlip(blip)
-	end
+        for _, blip in ipairs(Blips) do
+                RemoveBlip(blip)
+        end
+
+        for _, blip in ipairs(DispatchBlips) do
+                RemoveBlip(blip)
+        end
 
 	-- Text-UI verstecken beim Resource-Stop
         HideShopText()
@@ -577,5 +610,20 @@ AddEventHandler('Paragon-Shops:Client:PoliceDispatch', function(coords)
             description = ('Ein Shop wird überfallen in der Nähe von %s'):format(street),
             type = 'inform'
         })
+
+        local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
+        SetBlipSprite(blip, 161)
+        SetBlipScale(blip, 1.2)
+        SetBlipColour(blip, 3)
+        BeginTextCommandSetBlipName('STRING')
+        AddTextComponentString('Shop Raub')
+        EndTextCommandSetBlipName(blip)
+        DispatchBlips[#DispatchBlips + 1] = blip
+        CreateThread(function()
+            Wait(60000)
+            if DoesBlipExist(blip) then
+                RemoveBlip(blip)
+            end
+        end)
     end
 end)
