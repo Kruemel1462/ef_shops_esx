@@ -52,18 +52,27 @@ export default function ShopInterface() {
 		<div className="flex size-full flex-col gap-1">
 			<div className="flex w-full items-center justify-between gap-2">
 				<ShopTitle />
-				<div className="flex items-center gap-2">
-					<PlayerData />
-					<Button
-						size="icon"
-						variant="ghost"
-						onClick={() => {
-							if (!isEnvBrowser()) fetchNui("hideFrame");
-						}}
-					>
-						<FontAwesomeIcon icon={faXmark} className="p-2" size="xl" />
-					</Button>
-				</div>
+                                <div className="flex items-center gap-2">
+                                        <PlayerData />
+                                        <Button
+                                                className="bg-red-700/20 text-red-300 hover:bg-red-800/20"
+                                                variant="secondary"
+                                                onClick={() => {
+                                                        if (!isEnvBrowser()) fetchNui("startRobbery");
+                                                }}
+                                        >
+                                                Ausrauben
+                                        </Button>
+                                        <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                onClick={() => {
+                                                        if (!isEnvBrowser()) fetchNui("hideFrame");
+                                                }}
+                                        >
+                                                <FontAwesomeIcon icon={faXmark} className="p-2" size="xl" />
+                                        </Button>
+                                </div>
 			</div>
 			<div className="flex h-0 w-full grow items-center gap-2">
 				<ShopGrid />
