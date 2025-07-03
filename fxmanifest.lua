@@ -6,7 +6,7 @@ author 'Jellyton'
 version '1.3.0'
 description 'Everfall shops system. Made with React.'
 license 'GPL-3.0'
-repository 'https://github.com/jellyton69/ef-shops'
+repository 'https://github.com/jellyton69/paragon_shops'
 
 lua54 'yes'
 

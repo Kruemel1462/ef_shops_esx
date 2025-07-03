@@ -113,7 +113,7 @@ local function openShop(data)
 
 	setShopVisible(true)
 
-        local shopItems = lib.callback.await("EF-Shops:Server:OpenShop", false, data.type, data.location)
+        local shopItems = lib.callback.await("Paragon-Shops:Server:OpenShop", false, data.type, data.location)
 
         if not shopItems then
 		lib.print.error("Failed opening shop: " .. data.type)
@@ -131,7 +131,7 @@ local function openShop(data)
 		item.jobs = productData.jobs
         end
 
-        societyMoney = lib.callback.await('EF-Shops:Server:GetSocietyMoney', false)
+        societyMoney = lib.callback.await('Paragon-Shops:Server:GetSocietyMoney', false)
 
         UpdatePlayerData()
 
@@ -189,7 +189,7 @@ RegisterNuiCallback("purchaseItems", function(data, cb)
                 return
         end
 
-	local success = lib.callback.await("EF-Shops:Server:PurchaseItems", false, data)
+    local success = lib.callback.await("Paragon-Shops:Server:PurchaseItems", false, data)
 
         if not success then
                 lib.notify({ title = "Kauf fehlgeschlagen", description = "Beim Kauf ist ein Fehler aufgetreten.", type = "error" })
@@ -463,8 +463,8 @@ AddEventHandler('ox_inventory:updateInventory', function()
 	})
 end)
 
-RegisterNetEvent('EF-Shops:Client:SetSocietyMoney')
-AddEventHandler('EF-Shops:Client:SetSocietyMoney', function(amount)
+RegisterNetEvent('Paragon-Shops:Client:SetSocietyMoney')
+AddEventHandler('Paragon-Shops:Client:SetSocietyMoney', function(amount)
     societyMoney = amount
     UpdateShopData()
 end)

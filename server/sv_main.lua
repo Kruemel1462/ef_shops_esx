@@ -1,4 +1,4 @@
-lib.versionCheck('jellyton69/ef-shops')
+lib.versionCheck('jellyton69/paragon_shops')
 if not lib.checkDependency('ox_lib', '3.0.0') then error() end
 if not lib.checkDependency('ox_inventory', '2.20.0') then error() end
 
@@ -49,7 +49,7 @@ local function registerShop(shopType, shopData)
 	end
 end
 
-lib.callback.register("EF-Shops:Server:OpenShop", function(source, shop_type, location)
+lib.callback.register("Paragon-Shops:Server:OpenShop", function(source, shop_type, location)
         local shop = ShopData[shop_type] and ShopData[shop_type][location]
         if not shop then
                 lib.print.error("Shop not found: " .. shop_type .. " at location " .. location)
@@ -58,7 +58,7 @@ lib.callback.register("EF-Shops:Server:OpenShop", function(source, shop_type, lo
         return shop.inventory
 end)
 
-lib.callback.register("EF-Shops:Server:GetSocietyMoney", function(source)
+lib.callback.register("Paragon-Shops:Server:GetSocietyMoney", function(source)
         local xPlayer = ESX.GetPlayerFromId(source)
         if not xPlayer then return 0 end
 
@@ -79,14 +79,14 @@ local mapBySubfield = function(tbl, subfield)
 	return mapped
 end
 
-lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchaseData)
+lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, purchaseData)
 	if not purchaseData then
-		lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit EF-Shops:Server:PurchaseItems.")
+            lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit Paragon-Shops:Server:PurchaseItems.")
 		return false
 	end
 
 	if not purchaseData.shop then
-		lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit EF-Shops:Server:PurchaseItems.")
+            lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit Paragon-Shops:Server:PurchaseItems.")
 		lib.print.warn(purchaseData)
 		return false
 	end
@@ -248,7 +248,7 @@ lib.callback.register("EF-Shops:Server:PurchaseItems", function(source, purchase
                 end
 
                 account.removeMoney(totalPrice)
-                TriggerClientEvent('EF-Shops:Client:SetSocietyMoney', source, account.money)
+                TriggerClientEvent('Paragon-Shops:Client:SetSocietyMoney', source, account.money)
         else
                 lib.print.error("Invalid currency type used in purchase: " .. tostring(currency))
                 return false
@@ -349,5 +349,5 @@ AddEventHandler('onResourceStart', function(resource)
 		::continue::
 	end
 	
-	lib.print.info("EF-Shops loaded successfully with " .. lib.table.tablesize(ShopData) .. " shop types")
+        lib.print.info("Paragon-Shops loaded successfully with " .. lib.table.tablesize(ShopData) .. " shop types")
 end)
