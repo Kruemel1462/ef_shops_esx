@@ -9,6 +9,17 @@ local config = require 'config.config'
 
 local lastRobbery = {}
 
+---Dispatch helper
+---@param coords vector3
+local function sendPoliceDispatch(coords)
+    for _, playerId in ipairs(GetPlayers()) do
+        local xPlayer = ESX.GetPlayerFromId(playerId)
+        if xPlayer and xPlayer.job and xPlayer.job.name == 'police' then
+            TriggerClientEvent('Paragon-Shops:Client:PoliceDispatch', playerId, coords)
+        end
+    end
+end
+
 local ox_inventory = exports.ox_inventory
 local ITEMS = ox_inventory:Items()
 
@@ -58,6 +69,16 @@ lib.callback.register("Paragon-Shops:Server:OpenShop", function(source, shop_typ
                 return nil
         end
         return shop.inventory
+end)
+
+RegisterNetEvent('Paragon-Shops:Server:RobberyStarted', function(shopId, location)
+    local shopData = LOCATIONS[shopId]
+    if not shopData or not shopData.coords or not shopData.coords[location] then return end
+
+    if math.random() < (config.robbery.dispatchChance or 0) then
+        local coords = shopData.coords[location]
+        sendPoliceDispatch(vector3(coords.x, coords.y, coords.z))
+    end
 end)
 
 RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress)

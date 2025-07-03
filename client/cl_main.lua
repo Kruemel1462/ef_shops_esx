@@ -189,6 +189,7 @@ exports("OpenShop", function(type)
 	openShop({ type = type })
 end)
 
+
 RegisterNuiCallback("purchaseItems", function(data, cb)
         if not data then
                 lib.notify({ title = "Kauf fehlgeschlagen", description = "Beim Kauf ist ein Fehler aufgetreten.", type = "error" })
@@ -221,6 +222,8 @@ RegisterNUICallback("startRobbery", function(_, cb)
         end
 
         if not CurrentShop then return end
+
+        TriggerServerEvent('Paragon-Shops:Server:RobberyStarted', CurrentShop.id, CurrentShop.location)
 
         setShopVisible(false)
         Wait(100)
@@ -542,5 +545,17 @@ AddEventHandler('onResourceStop', function(resource)
 	end
 
 	-- Text-UI verstecken beim Resource-Stop
-	HideShopText()
+        HideShopText()
+end)
+
+RegisterNetEvent('Paragon-Shops:Client:PoliceDispatch')
+AddEventHandler('Paragon-Shops:Client:PoliceDispatch', function(coords)
+    if ESX.PlayerData.job and ESX.PlayerData.job.name == 'police' then
+        local street = GetStreetNameFromHashKey(GetStreetNameAtCoord(coords.x, coords.y, coords.z))
+        lib.notify({
+            title = 'Ladenüberfall',
+            description = ('Ein Shop wird überfallen in der Nähe von %s'):format(street),
+            type = 'inform'
+        })
+    end
 end)
