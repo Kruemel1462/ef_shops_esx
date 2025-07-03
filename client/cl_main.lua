@@ -35,7 +35,7 @@ local scenarios = {
 local function playFearAnim(ped)
     if not ped or ped == 0 then return end
     lib.requestAnimDict('amb@code_human_cower@female@react_cowering')
-    TaskPlayAnim(ped, 'amb@code_human_cower@female@react_cowering', 'agent_stealth', 8.0, -8.0, -1, 49, 0, false, false, false)
+    TaskPlayAnim(ped, 'amb@code_human_cower@female@react_cowering', 'base_back_left', 8.0, -8.0, -1, 49, 0, false, false, false)
 end
 
 local function restoreVendorAnim(vendorKey)
