@@ -58,9 +58,21 @@ lib.callback.register("Paragon-Shops:Server:OpenShop", function(source, shop_typ
         return shop.inventory
 end)
 
-lib.callback.register("Paragon-Shops:Server:GetSocietyMoney", function(source)
+lib.callback.register("Paragon-Shops:Server:GetSocietyMoney", function(source, shopId)
         local xPlayer = ESX.GetPlayerFromId(source)
         if not xPlayer then return 0 end
+
+        local shopData = LOCATIONS[shopId]
+        if not shopData then return 0 end
+
+        local required = shopData.societies and shopData.societies[xPlayer.job.name]
+        if not required then return 0 end
+
+        if type(required) == 'number' then
+                if xPlayer.job.grade < required then return 0 end
+        elseif type(required) == 'string' then
+                if xPlayer.job.grade_name ~= required then return 0 end
+        end
 
         local account
         TriggerEvent('esx_addonaccount:getSharedAccount', 'society_' .. xPlayer.job.name, function(acc)
@@ -222,21 +234,41 @@ lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, pur
                         return false
                 end
                 xPlayer.removeAccountMoney('bank', totalPrice)
-        elseif currency == "society" then
-                local account
-                TriggerEvent('esx_addonaccount:getSharedAccount', 'society_' .. xPlayer.job.name, function(acc)
-                        account = acc
-                end)
+       elseif currency == "society" then
+               local required = shopData.societies and shopData.societies[xPlayer.job.name]
+               if not required then
+                       TriggerClientEvent('ox_lib:notify', source, {
+                               title = "Berechtigung fehlt",
+                               description = "Du darfst das Society-Konto nicht verwenden.",
+                               type = "error"
+                       })
+                       return false
+               end
 
-                local minGrade = shopData.societyGrade or 0
-                if xPlayer.job.grade < minGrade then
-                        TriggerClientEvent('ox_lib:notify', source, {
-                                title = "Berechtigung fehlt",
-                                description = "Du darfst das Society-Konto nicht verwenden.",
-                                type = "error"
-                        })
-                        return false
-                end
+               if type(required) == 'number' then
+                       if xPlayer.job.grade < required then
+                               TriggerClientEvent('ox_lib:notify', source, {
+                                       title = "Berechtigung fehlt",
+                                       description = "Du darfst das Society-Konto nicht verwenden.",
+                                       type = "error"
+                               })
+                               return false
+                       end
+               elseif type(required) == 'string' then
+                       if xPlayer.job.grade_name ~= required then
+                               TriggerClientEvent('ox_lib:notify', source, {
+                                       title = "Berechtigung fehlt",
+                                       description = "Du darfst das Society-Konto nicht verwenden.",
+                                       type = "error"
+                               })
+                               return false
+                       end
+               end
+
+               local account
+               TriggerEvent('esx_addonaccount:getSharedAccount', 'society_' .. xPlayer.job.name, function(acc)
+                       account = acc
+               end)
 
                 if not account or account.money < totalPrice then
                         TriggerClientEvent('ox_lib:notify', source, {

@@ -131,7 +131,7 @@ local function openShop(data)
 		item.jobs = productData.jobs
         end
 
-        societyMoney = lib.callback.await('Paragon-Shops:Server:GetSocietyMoney', false)
+        societyMoney = lib.callback.await('Paragon-Shops:Server:GetSocietyMoney', false, data.type)
 
         UpdatePlayerData()
 
