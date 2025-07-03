@@ -10,6 +10,7 @@ return {
                 cooldown = 300000,
                 maxDistance = 20.0,
                 abortControl = 47,
-                dispatchChance = 0.5 -- 50% chance police gets a dispatch on robbery start
+                dispatchChance = 0.5, -- 50% chance police gets a dispatch on robbery start
+                progressLabel = 'Raub läuft...'
         }
 }
