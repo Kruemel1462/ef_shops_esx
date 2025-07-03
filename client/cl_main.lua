@@ -18,6 +18,9 @@ local NearbyShops = {} -- Neue Tabelle für nahegelegene Shops
 
 ShopOpen = false
 local societyMoney = 0
+local CurrentShop
+local robberyCooldown = 0
+local isRobbing = false
 
 local scenarios = {
 	"WORLD_HUMAN_VALET",
@@ -147,8 +150,9 @@ local function openShop(data)
 		},
 		licenses = GetPlayerLicenses()
 	})
-	SendReactMessage("setCurrentShop", { id = data.type, location = data.location, label = LOCATIONS[data.type].label })
-	SendReactMessage("setShopItems", shopItems)
+        CurrentShop = { id = data.type, location = data.location }
+        SendReactMessage("setCurrentShop", { id = data.type, location = data.location, label = LOCATIONS[data.type].label })
+        SendReactMessage("setShopItems", shopItems)
 end
 
 -- Funktion um Shop-Daten zu aktualisieren
@@ -210,19 +214,46 @@ end)
 
 RegisterNUICallback("startRobbery", function(_, cb)
         cb(1)
+        if GetGameTimer() < robberyCooldown then
+                local remain = math.ceil((robberyCooldown - GetGameTimer()) / 1000)
+                lib.notify({ description = ('Du musst noch %s Sekunden warten.'):format(remain), type = 'error' })
+                return
+        end
+
+        if not CurrentShop then return end
+
         setShopVisible(false)
         Wait(100)
         local duration = config.robbery.duration or 10000
+        local shopCoords = LOCATIONS[CurrentShop.id].coords[CurrentShop.location]
+        local origin = vector3(shopCoords.x, shopCoords.y, shopCoords.z)
         local startTime = GetGameTimer()
-        lib.progressCircle({
-                duration = duration,
-                position = 'bottom',
-                label = 'Shop ausrauben...'
-        })
+        local aborted = false
+
+        isRobbing = true
+        lib.showTextUI('[G] - Raub abbrechen', { position = 'top-center' })
+        while (GetGameTimer() - startTime) < duration do
+                Wait(0)
+                if IsControlJustReleased(0, config.robbery.abortControl or 47) then
+                        aborted = true
+                        break
+                end
+
+                if #(GetEntityCoords(cache.ped) - origin) > (config.robbery.maxDistance or 20.0) then
+                        aborted = true
+                        break
+                end
+        end
+        lib.hideTextUI()
+        isRobbing = false
 
         local elapsed = GetGameTimer() - startTime
         local progress = math.min(elapsed / duration, 1.0)
+        if aborted then
+                lib.notify({ description = 'Raub abgebrochen', type = 'error' })
+        end
         TriggerServerEvent('Paragon-Shops:Server:RobberyReward', progress)
+        robberyCooldown = GetGameTimer() + (config.robbery.cooldown or 60000)
 end)
 
 -- Frame Callbacks
@@ -232,10 +263,11 @@ RegisterNUICallback("Loaded", function(data, cb)
 end)
 
 RegisterNUICallback("hideFrame", function(_, cb)
-	cb(1)
-	setShopVisible(false)
-	Wait(400)
-	SendReactMessage("setCurrentShop", nil)
+        cb(1)
+        setShopVisible(false)
+        Wait(400)
+        SendReactMessage("setCurrentShop", nil)
+        CurrentShop = nil
 end)
 
 -- Hauptthread für Shop-Erstellung (ohne ox_target)
@@ -362,8 +394,8 @@ end)
 
 -- Thread für E-Taste Erkennung
 CreateThread(function()
-	while true do
-		if next(NearbyShops) ~= nil and not ShopOpen then
+        while true do
+                if next(NearbyShops) ~= nil and not ShopOpen and not isRobbing then
 			if IsControlJustReleased(0, 38) then -- E-Taste
 				-- Finde den nächsten Shop
 				local playerCoords = GetEntityCoords(cache.ped)

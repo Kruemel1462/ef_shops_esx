@@ -6,6 +6,9 @@ return {
         fluctuatePrices = true,
         robbery = {
                 duration = 15000,
-                reward = 500
+                reward = 500,
+                cooldown = 300000,
+                maxDistance = 20.0,
+                abortControl = 47
         }
 }

@@ -7,6 +7,8 @@ ESX = exports['es_extended']:getSharedObject()
 
 local config = require 'config.config'
 
+local lastRobbery = {}
+
 local ox_inventory = exports.ox_inventory
 local ITEMS = ox_inventory:Items()
 
@@ -62,6 +64,12 @@ RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
     if not xPlayer then return end
+
+    local now = os.time() * 1000
+    if lastRobbery[src] and now - lastRobbery[src] < (config.robbery.cooldown or 60000) then
+        return
+    end
+    lastRobbery[src] = now
 
     local amount = math.floor((config.robbery.reward or 0) * (progress or 0))
     if amount > 0 then
