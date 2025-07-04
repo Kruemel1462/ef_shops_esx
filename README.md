@@ -13,11 +13,15 @@ A shops system made in React for es_extended and ox_inventory
 - Responsive UI
 - Job (can specify certain grades) lock specific shop types
 - UI made with Mantine v7
+- Optional Discord webhook logs for purchases and sales
 
 ## Dependencies
 - [qbx-core](https://github.com/Qbox-project/qbx_core)
 - [ox_lib](https://github.com/overextended/ox_lib)
-- [ox_inventory](https://github.com/overextended/ox_inventory) 
+- [ox_inventory](https://github.com/overextended/ox_inventory)
+
+## Logging
+Set `logWebhook` in `config/config.lua` to a Discord webhook URL to receive purchase and sale logs.
 
 ## Contributing
 This repo uses the QBox Project contribution guidelines. You can view those here: https://docs.qbox.re/contributors.

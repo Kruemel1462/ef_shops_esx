@@ -4,6 +4,7 @@
 return {
         debug = false,
         fluctuatePrices = true,
+        logWebhook = '', -- Discord webhook URL for purchase/sale logs
         robbery = {
                 duration = 15000,
                 reward = 500,
