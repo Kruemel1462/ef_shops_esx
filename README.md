@@ -9,6 +9,7 @@ A shops system made in React for es_extended and ox_inventory
 - Sell multiple items at once with a single request
 - Price fluctuation
 - Hooks - handle post item purchases (example: registering weapons automatically in your MDT)
+- Separate shop types for buying and selling
 - Vendors can be peds or objects
 - Responsive UI
 - Job (can specify certain grades) lock specific shop types

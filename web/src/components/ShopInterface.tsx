@@ -50,24 +50,27 @@ function PlayerData() {
 
 export default function ShopInterface() {
         const { SellingMode, setSellingMode, CurrentShop } = useStoreShop();
+        const showToggle = CurrentShop?.canBuy && CurrentShop?.canSell;
         return (
                 <div className="flex size-full flex-col gap-1">
                         <div className="flex w-full items-center justify-between gap-2">
                                 <ShopTitle />
                                 <div className="flex items-center gap-2">
                                         <PlayerData />
-                                        <Button
-                                                className="bg-indigo-700/20 text-indigo-300 hover:bg-indigo-800/20"
-                                                variant="secondary"
-                                                onClick={() => {
-                                                        if (!SellingMode) {
-                                                                fetchNui("getInventory", { shop: CurrentShop?.id });
-                                                        }
-                                                        setSellingMode(!SellingMode);
-                                                }}
-                                        >
-                                                {SellingMode ? "Kaufen" : "Verkaufen"}
-                                        </Button>
+                                        {showToggle && (
+                                                <Button
+                                                        className="bg-indigo-700/20 text-indigo-300 hover:bg-indigo-800/20"
+                                                        variant="secondary"
+                                                        onClick={() => {
+                                                                if (!SellingMode) {
+                                                                        fetchNui("getInventory", { shop: CurrentShop?.id });
+                                                                }
+                                                                setSellingMode(!SellingMode);
+                                                        }}
+                                                >
+                                                        {SellingMode ? "Kaufen" : "Verkaufen"}
+                                                </Button>
+                                        )}
                                         <Button
                                                 className="bg-red-700/20 text-red-300 hover:bg-red-800/20"
                                                 variant="secondary"

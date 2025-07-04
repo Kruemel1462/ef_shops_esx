@@ -1,7 +1,9 @@
 export type Shop = {
-	id: string;
-	location: number;
-	label: string;
+        id: string;
+        location: number;
+        label: string;
+        canBuy?: boolean;
+        canSell?: boolean;
 };
 
 export type ShopItem = {

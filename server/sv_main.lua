@@ -180,10 +180,14 @@ lib.callback.register('Paragon-Shops:Server:GetInventoryItems', function(source,
 
         local allowed
         local shop = LOCATIONS[shopId]
-        if shop and shop.sellItems then
-                allowed = {}
-                for _, name in ipairs(shop.sellItems) do
-                        allowed[name] = true
+        if shop then
+                if type(shop.sellItems) == 'table' then
+                        allowed = {}
+                        for _, name in ipairs(shop.sellItems) do
+                                allowed[name] = true
+                        end
+                elseif shop.sellItems == false or shop.sellItems == nil then
+                        allowed = {}
                 end
         end
 
@@ -215,12 +219,16 @@ lib.callback.register('Paragon-Shops:Server:SellItem', function(source, item)
         if not item or not item.name then return false end
         if item.shop then
                 local shop = LOCATIONS[item.shop]
-                if shop and shop.sellItems then
-                        local allowed = false
-                        for _, name in ipairs(shop.sellItems) do
-                                if name == item.name then allowed = true break end
+                if shop then
+                        if type(shop.sellItems) == 'table' then
+                                local allowed = false
+                                for _, name in ipairs(shop.sellItems) do
+                                        if name == item.name then allowed = true break end
+                                end
+                                if not allowed then return false end
+                        elseif shop.sellItems == false or shop.sellItems == nil then
+                                return false
                         end
-                        if not allowed then return false end
                 end
         end
         local price = ItemPrices[item.name]
@@ -245,10 +253,14 @@ lib.callback.register('Paragon-Shops:Server:SellItems', function(source, data)
     local allowed
     if data.shop then
         local shop = LOCATIONS[data.shop]
-        if shop and shop.sellItems then
-            allowed = {}
-            for _, name in ipairs(shop.sellItems) do
-                allowed[name] = true
+        if shop then
+            if type(shop.sellItems) == 'table' then
+                allowed = {}
+                for _, name in ipairs(shop.sellItems) do
+                    allowed[name] = true
+                end
+            elseif shop.sellItems == false or shop.sellItems == nil then
+                allowed = {}
             end
         end
     end
@@ -546,35 +558,41 @@ AddEventHandler('onResourceStart', function(resource)
         end
 
 	-- Register shops
-	for shopID, shopData in pairs(LOCATIONS) do
-		if not shopData.shopItems or not PRODUCTS[shopData.shopItems] then
-			lib.print.error("A valid product ID (" .. (shopData.shopItems or "nil") .. ") for [" .. shopID .. "] was not found.")
-			goto continue
-		end
+        for shopID, shopData in pairs(LOCATIONS) do
+                local shopProducts = {}
 
-		local shopProducts = {}
-		for item, data in pairs(PRODUCTS[shopData.shopItems]) do
-			shopProducts[#shopProducts + 1] = {
-				id = tonumber(item) or #shopProducts + 1,
-				name = data.name,
-				price = config.fluctuatePrices and (math.floor(data.price * (math.random(80, 120) / 100))) or data.price or 0,
-				license = data.license,
-				metadata = data.metadata,
-				count = data.defaultStock,
-				jobs = data.jobs
-			}
-		end
+                if shopData.shopItems then
+                        if not PRODUCTS[shopData.shopItems] then
+                                lib.print.error("A valid product ID (" .. tostring(shopData.shopItems) .. ") for [" .. shopID .. "] was not found.")
+                                goto continue
+                        end
 
-		table.sort(shopProducts, function(a, b)
-			return a.name < b.name
-		end)
+                        for item, data in pairs(PRODUCTS[shopData.shopItems]) do
+                                shopProducts[#shopProducts + 1] = {
+                                        id = tonumber(item) or #shopProducts + 1,
+                                        name = data.name,
+                                        price = config.fluctuatePrices and (math.floor(data.price * (math.random(80, 120) / 100))) or data.price or 0,
+                                        license = data.license,
+                                        metadata = data.metadata,
+                                        count = data.defaultStock,
+                                        jobs = data.jobs
+                                }
+                        end
 
-		registerShop(shopID, {
-			name = shopData.label,
-			inventory = shopProducts,
-			groups = shopData.groups,
-			coords = shopData.coords
-		})
+                        table.sort(shopProducts, function(a, b)
+                                return a.name < b.name
+                        end)
+                elseif not shopData.sellItems then
+                        lib.print.error("Shop [" .. shopID .. "] has neither shopItems nor sellItems defined.")
+                        goto continue
+                end
+
+                registerShop(shopID, {
+                        name = shopData.label,
+                        inventory = shopProducts,
+                        groups = shopData.groups,
+                        coords = shopData.coords
+                })
 
 		::continue::
 	end
