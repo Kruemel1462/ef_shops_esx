@@ -14,30 +14,33 @@ local ITEMS = {
 		{ name = 'phone', price = 55, defaultStock = 50, category = 'Electronics' },
 		{ name = 'radio', price = 85, defaultStock = 50, category = 'Electronics' },
 		{ name = 'WEAPON_SNSPISTOL', price = 1850, defaultStock = 5, license = "weapon", category = 'Firearms' },
+		{ name = 'ammo-45', price = 7, defaultStock = 5500, license = "weapon", category = 'Ammunition' },
 		-- { name = 'water_bottle', price = 1, defaultStock = 50, category = 'Drinks' },
 		-- { name = 'sandwich', price = 4, defaultStock = 50, category = 'Food' },
 	},
-	bar = {
-		{ name = 'water_bottle', price = 1, defaultStock = 50, category = 'Drinks' },
-		{ name = 'beer', price = 6, defaultStock = 50, category = 'Alcohol' },
-		{ name = 'whiskey', price = 20, defaultStock = 50, category = 'Alcohol' },
-		{ name = 'vodka', price = 12, defaultStock = 50, category = 'Alcohol' }
-	},
-	hardware = {
-		{ name = 'lockpick', price = 20, defaultStock = 50, category = 'Tools' },
-		{ name = 'screwdriver', price = 15, defaultStock = 50, category = 'Tools' },
-		{ name = 'hammer', price = 25, defaultStock = 50, category = 'Tools' },
-	},
-	weapons = {
-		{ name = 'WEAPON_KNIFE', price = 80, defaultStock = 250, category = 'Point Defense' },
-		{ name = 'WEAPON_BAT', price = 45, defaultStock = 250, category = 'Point Defense' },
-		{ name = 'WEAPON_NIGHTSTICK', price = 500, category = 'Point Defense' },
-		{ name = 'WEAPON_KNUCKLE', price = 950, defaultStock = 250, category = 'Point Defense' },
-		{ name = 'WEAPON_PISTOL', price = 2450, defaultStock = 5, license = "weapon", category = 'Firearms' },
-		{ name = 'WEAPON_SNSPISTOL', price = 1850, defaultStock = 5, license = "weapon", category = 'Firearms' },
-		{ name = 'ammo-9', price = 4, defaultStock = 9500, license = "weapon", category = 'Ammunition' },
-		{ name = 'ammo-45', price = 7, defaultStock = 5500, license = "weapon", category = 'Ammunition' },
-	},
+	-- bar = {
+	-- 	{ name = 'water_bottle', price = 1, defaultStock = 50, category = 'Drinks' },
+	-- 	{ name = 'beer', price = 6, defaultStock = 50, category = 'Alcohol' },
+	-- 	{ name = 'whiskey', price = 20, defaultStock = 50, category = 'Alcohol' },
+	-- 	{ name = 'vodka', price = 12, defaultStock = 50, category = 'Alcohol' }
+	-- },
+	
+	-- hardware = {
+	-- 	{ name = 'lockpick', price = 20, defaultStock = 50, category = 'Tools' },
+	-- 	{ name = 'screwdriver', price = 15, defaultStock = 50, category = 'Tools' },
+	-- 	{ name = 'hammer', price = 25, defaultStock = 50, category = 'Tools' },
+	-- },
+
+	-- weapons = {
+	-- 	{ name = 'WEAPON_KNIFE', price = 80, defaultStock = 250, category = 'Point Defense' },
+	-- 	{ name = 'WEAPON_BAT', price = 45, defaultStock = 250, category = 'Point Defense' },
+	-- 	{ name = 'WEAPON_NIGHTSTICK', price = 500, category = 'Point Defense' },
+	-- 	{ name = 'WEAPON_KNUCKLE', price = 950, defaultStock = 250, category = 'Point Defense' },
+	-- 	{ name = 'WEAPON_PISTOL', price = 2450, defaultStock = 5, license = "weapon", category = 'Firearms' },
+	-- 	{ name = 'WEAPON_SNSPISTOL', price = 1850, defaultStock = 5, license = "weapon", category = 'Firearms' },
+	-- 	{ name = 'ammo-9', price = 4, defaultStock = 9500, license = "weapon", category = 'Ammunition' },
+	-- 	{ name = 'ammo-45', price = 7, defaultStock = 5500, license = "weapon", category = 'Ammunition' },
+	-- },
 }
 
 local newFormatItems = {}
