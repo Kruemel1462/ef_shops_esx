@@ -54,7 +54,7 @@ export default function ShopGrid() {
                 <div className="flex size-full flex-col">
                         <input
                                 type="text"
-                                placeholder="Search..."
+                                placeholder="Suche..."
                                 value={searchText}
                                 onChange={(e) => setSearchText(e.target.value)}
                                 className="mb-2 rounded-md border border-input bg-background px-2 py-1 text-sm focus:outline-none"
