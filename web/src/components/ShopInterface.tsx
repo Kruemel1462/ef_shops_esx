@@ -59,7 +59,7 @@ export default function ShopInterface() {
                                                 className="bg-indigo-700/20 text-indigo-300 hover:bg-indigo-800/20"
                                                 variant="secondary"
                                                 onClick={() => {
-                                                        if (!SellingMode) fetchNui("getInventory");
+                                                        if (!SellingMode) fetchNui("getInventory", { shop: CurrentShop?.id });
                                                         setSellingMode(!SellingMode);
                                                 }}
                                         >

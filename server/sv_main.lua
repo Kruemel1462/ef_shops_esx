@@ -162,14 +162,24 @@ local mapBySubfield = function(tbl, subfield)
         return mapped
 end
 
-lib.callback.register('Paragon-Shops:Server:GetInventoryItems', function(source)
+lib.callback.register('Paragon-Shops:Server:GetInventoryItems', function(source, shopId)
         local inv = ox_inventory:GetInventory(source)
         if not inv or not inv.items then return {} end
+
+        local allowed
+        local shop = LOCATIONS[shopId]
+        if shop and shop.sellItems then
+                allowed = {}
+                for _, name in ipairs(shop.sellItems) do
+                        allowed[name] = true
+                end
+        end
 
         local items = {}
         local id = 0
         for _, item in pairs(inv.items) do
                 if item.count and item.count > 0 then
+                        if allowed and not allowed[item.name] then goto continue end
                         id = id + 1
                         local data = ITEMS[item.name]
                         items[#items + 1] = {
@@ -179,8 +189,9 @@ lib.callback.register('Paragon-Shops:Server:GetInventoryItems', function(source)
                                 price = ItemPrices[item.name] or 0,
                                 weight = data and data.weight or 0,
                                 count = item.count,
-                                imagePath = data and data.client and data.client.image
+                                imagePath = GetItemIcon(item.name)
                         }
+                        ::continue::
                 end
         end
 
@@ -190,6 +201,16 @@ end)
 
 lib.callback.register('Paragon-Shops:Server:SellItem', function(source, item)
         if not item or not item.name then return false end
+        if item.shop then
+                local shop = LOCATIONS[item.shop]
+                if shop and shop.sellItems then
+                        local allowed = false
+                        for _, name in ipairs(shop.sellItems) do
+                                if name == item.name then allowed = true break end
+                        end
+                        if not allowed then return false end
+                end
+        end
         local price = ItemPrices[item.name]
         if not price or price <= 0 then return false end
 
