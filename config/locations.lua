@@ -51,12 +51,13 @@ return {
 			vector4(644.72, 257.69, 103.3, 325.93),
 			vector4(-345.66, -1473.96, 30.79, 181.86)
 		},
-		shopItems = "electronics",
-		blip = {
-			sprite = 52,
-			color = 2,
-			scale = 0.9
-		}
+                shopItems = "electronics",
+                sellItems = { 'water_bottle', 'beer', 'whiskey', 'vodka', 'phone', 'radio' },
+                blip = {
+                        sprite = 52,
+                        color = 2,
+                        scale = 0.9
+                }
 	},
 
 	-- Rob's Liquor Locations
@@ -77,11 +78,12 @@ return {
 			vector4(1134.3, -983.26, 46.42, 276.3),
 			vector4(1744.65, 3611.95, 34.89, 311.19)
 		},
-		shopItems = "electronics",
-		blip = {
-			sprite = 827,
-			color = 47,
-		}
+                shopItems = "electronics",
+                sellItems = { 'beer', 'whiskey', 'vodka', 'water_bottle' },
+                blip = {
+                        sprite = 827,
+                        color = 47,
+                }
 	},
 
 	-- Hardware Store Locations
@@ -108,11 +110,12 @@ return {
 			vector4(1167.28, -1347.11, 34.91, 276.86),
 			vector4(2665.97, 3385.94, 57.12, 241.55)
 		},
-		shopItems = "electronics",
-		blip = {
-			sprite = 402,
-			color = 5,
-		}
+                shopItems = "electronics",
+                sellItems = { 'lockpick', 'screwdriver', 'hammer' },
+                blip = {
+                        sprite = 402,
+                        color = 5,
+                }
 	},
 
 	-- Ammunation Locations
@@ -143,12 +146,13 @@ return {
 			vector4(841.31, -1035.28, 28.19, 334.27),
 			vector4(-1304.44, -395.68, 36.7, 41.85),
 		},
-		shopItems = "electronics",
-		blip = {
-			sprite = 567,
-			color = 1,
-		}
-	},
+                shopItems = "electronics",
+                sellItems = { 'WEAPON_KNIFE', 'WEAPON_BAT', 'WEAPON_PISTOL' },
+                blip = {
+                        sprite = 567,
+                        color = 1,
+                }
+       },
 	digitalden = {
 		label = "Digital Den",
 		model = {
@@ -163,10 +167,11 @@ return {
 		coords = {
 			vector4(240.05, -897.57, 29.62, 159.74)
 		},
-		shopItems = "electronics",
-		blip = {
-			sprite = 606,
-			color = 7,
-		}
-	},
+                shopItems = "electronics",
+                sellItems = { 'phone', 'radio' },
+                blip = {
+                        sprite = 606,
+                        color = 7,
+                }
+       },
 }

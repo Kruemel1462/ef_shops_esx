@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { TooltipPortal } from "@radix-ui/react-tooltip";
 
 export default function ItemCard({ item }: { item: ShopItem }) {
-        const { addItemToCart, cartValue, cartWeight, CartItems, SellingMode } = useStoreShop();
+        const { addItemToCart, cartValue, cartWeight, CartItems, SellingMode, CurrentShop } = useStoreShop();
 	const { Weight, MaxWeight, Money, Licenses, Job } = useStoreSelf();
 
         const canNotAfford =
@@ -29,8 +29,8 @@ export default function ItemCard({ item }: { item: ShopItem }) {
                         <div
                                 className="flex h-full min-h-40 cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all hover:scale-105 hover:bg-card/30 hover:shadow-md"
                                 onClick={() => {
-                                        fetchNui("sellItem", { name: item.name }).then(() => {
-                                                fetchNui("getInventory");
+                                        fetchNui("sellItem", { name: item.name, shop: CurrentShop?.id }).then(() => {
+                                                fetchNui("getInventory", { shop: CurrentShop?.id });
                                         });
                                 }}
                         >
