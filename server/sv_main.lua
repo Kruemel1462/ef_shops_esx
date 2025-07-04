@@ -20,6 +20,18 @@ local function saveCooldowns()
         SetResourceKvp('paragon_shops_cooldowns', json.encode(lastRobbery))
 end
 
+---Send log to Discord webhook if configured
+---@param title string
+---@param description string
+local function sendWebhookLog(title, description)
+    if not config.logWebhook or config.logWebhook == '' then return end
+    local payload = json.encode({
+        username = 'Shop Logs',
+        embeds = {{title = title, description = description, color = 3066993}}
+    })
+    PerformHttpRequest(config.logWebhook, function() end, 'POST', payload, {['Content-Type'] = 'application/json'})
+end
+
 ---Dispatch helper
 ---@param coords vector3
 local function sendPoliceDispatch(coords)
@@ -219,6 +231,8 @@ lib.callback.register('Paragon-Shops:Server:SellItem', function(source, item)
                 local xPlayer = ESX.GetPlayerFromId(source)
                 if xPlayer then
                         xPlayer.addMoney(price)
+                        local label = ITEMS[item.name] and ITEMS[item.name].label or item.name
+                        sendWebhookLog('Item Sold', ("%s sold 1x %s for $%d"):format(GetPlayerName(source), label, price))
                 end
                 return true
         end
@@ -240,6 +254,7 @@ lib.callback.register('Paragon-Shops:Server:SellItems', function(source, data)
     end
 
     local total = 0
+    local soldItems = {}
     for _, entry in ipairs(data.items) do
         local name = entry.name
         local amount = entry.quantity or 0
@@ -248,6 +263,8 @@ lib.callback.register('Paragon-Shops:Server:SellItems', function(source, data)
             if price and price > 0 then
                 if ox_inventory:RemoveItem(source, name, amount) then
                     total = total + price * amount
+                    local label = ITEMS[name] and ITEMS[name].label or name
+                    soldItems[#soldItems + 1] = string.format("%dx %s", amount, label)
                 end
             end
         end
@@ -257,6 +274,8 @@ lib.callback.register('Paragon-Shops:Server:SellItems', function(source, data)
         local xPlayer = ESX.GetPlayerFromId(source)
         if xPlayer then
             xPlayer.addMoney(total)
+            local detail = table.concat(soldItems, "; ")
+            sendWebhookLog('Items Sold', string.format('%s sold %s for $%d', GetPlayerName(source), detail, total))
         end
         return true
     end
@@ -500,11 +519,12 @@ lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, pur
 		:: continue ::
 	end
 
-	if #dropItems > 0 then
-		exports.ox_inventory:CustomDrop('Shop Drop', dropItems, GetEntityCoords(GetPlayerPed(source)), #dropItems, 10000, GetPlayerRoutingBucket(source), `prop_cs_shopping_bag`)
-	end
+        if #dropItems > 0 then
+                exports.ox_inventory:CustomDrop('Shop Drop', dropItems, GetEntityCoords(GetPlayerPed(source)), #dropItems, 10000, GetPlayerRoutingBucket(source), `prop_cs_shopping_bag`)
+        end
 
-	return true
+        sendWebhookLog('Items Purchased', string.format('%s bought %s from %s for $%d', GetPlayerName(source), purchaseReason, shopData.label or shopType, totalPrice))
+        return true
 end)
 
 AddEventHandler('onResourceStart', function(resource)
