@@ -35,7 +35,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
                                 }}
                         >
                                 <div className="mx-auto flex w-full items-center justify-between gap-2">
-                                        <p className="text-lg font-semibold">${'$'}{item.price}</p>
+                                        <p className="text-lg font-semibold">{'$'}{item.price}</p>
                                         <p className="text-lg font-semibold">{item.count}x</p>
                                 </div>
                                 <div className="m-auto h-[80%]">
