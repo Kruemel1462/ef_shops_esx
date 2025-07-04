@@ -7,17 +7,22 @@ ESX = exports['es_extended']:getSharedObject()
 
 local config = require 'config.config'
 
-local lastRobbery = {}
+local shopCooldowns = {}
+local activeRobberies = {}
+
+local function getShopKey(shopId, location)
+    return (tostring(shopId) .. '#' .. tostring(location or 1))
+end
 
 local function loadCooldowns()
-        local data = GetResourceKvpString('paragon_shops_cooldowns')
-        if data then
-                lastRobbery = json.decode(data) or {}
-        end
+    local data = GetResourceKvpString('paragon_shops_cooldowns')
+    if data then
+        shopCooldowns = json.decode(data) or {}
+    end
 end
 
 local function saveCooldowns()
-        SetResourceKvp('paragon_shops_cooldowns', json.encode(lastRobbery))
+    SetResourceKvp('paragon_shops_cooldowns', json.encode(shopCooldowns))
 end
 
 ---Send log to Discord webhook if configured
@@ -105,23 +110,29 @@ RegisterNetEvent('Paragon-Shops:Server:RobberyStarted', function(shopId, locatio
     local shopData = LOCATIONS[shopId]
     if not shopData or not shopData.coords or not shopData.coords[location] then return end
 
+    local key = getShopKey(shopId, location)
+    if activeRobberies[key] then return end
+    activeRobberies[key] = true
+
     if math.random() < (config.robbery.dispatchChance or 0) then
         local coords = shopData.coords[location]
         sendPoliceDispatch(vector3(coords.x, coords.y, coords.z))
     end
 end)
 
-RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress)
+RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress, shopId, location)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
     if not xPlayer then return end
 
     local now = os.time() * 1000
-    local id = xPlayer.identifier
-    if lastRobbery[id] and now - lastRobbery[id] < (config.robbery.cooldown or 60000) then
+    local key = getShopKey(shopId, location)
+    local last = shopCooldowns[key] or 0
+    if now - last < (config.robbery.cooldown or 60000) then
         return
     end
-    lastRobbery[id] = now
+    shopCooldowns[key] = now
+    activeRobberies[key] = nil
     saveCooldowns()
 
     local amount = math.floor((config.robbery.reward or 0) * (progress or 0))
@@ -130,13 +141,13 @@ RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress)
     end
 end)
 
-lib.callback.register('Paragon-Shops:Server:GetRobberyCooldown', function(source)
-    local xPlayer = ESX.GetPlayerFromId(source)
-    if not xPlayer then return 0 end
-
-    local id = xPlayer.identifier
+lib.callback.register('Paragon-Shops:Server:GetRobberyCooldown', function(source, shopId, location)
+    local key = getShopKey(shopId, location)
     local now = os.time() * 1000
-    local last = lastRobbery[id] or 0
+    local last = shopCooldowns[key] or 0
+    if activeRobberies[key] then
+        return (config.robbery.cooldown or 60000)
+    end
     local remain = (config.robbery.cooldown or 60000) - (now - last)
     return remain > 0 and remain or 0
 end)

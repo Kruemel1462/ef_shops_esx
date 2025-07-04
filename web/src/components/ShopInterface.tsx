@@ -26,9 +26,11 @@ function ShopTitle() {
 }
 
 function PlayerData() {
-	const { Money } = useStoreSelf();
+        const { Money } = useStoreSelf();
+        const { CurrentShop } = useStoreShop();
 
-	if (!PlayerData) return null;
+        if (!CurrentShop?.canBuy) return null;
+        if (!Money) return null;
 
         return (
                 <div className="flex gap-2">
@@ -75,15 +77,17 @@ export default function ShopInterface() {
                                                         {SellingMode ? "Kaufen" : "Verkaufen"}
                                                 </Button>
                                         )}
-                                        <Button
-                                                className="bg-red-700/20 text-red-300 hover:bg-red-800/20"
-                                                variant="secondary"
-                                                onClick={() => {
-                                                        if (!isEnvBrowser()) fetchNui("startRobbery");
-                                                }}
-                                        >
-                                                Ausrauben
-                                        </Button>
+                                        {canBuy && (
+                                                <Button
+                                                        className="bg-red-700/20 text-red-300 hover:bg-red-800/20"
+                                                        variant="secondary"
+                                                        onClick={() => {
+                                                                if (!isEnvBrowser()) fetchNui("startRobbery");
+                                                        }}
+                                                >
+                                                        Ausrauben
+                                                </Button>
+                                        )}
                                         <Button
                                                 size="icon"
                                                 variant="ghost"
