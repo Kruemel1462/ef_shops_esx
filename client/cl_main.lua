@@ -281,7 +281,8 @@ end)
 
 RegisterNUICallback("startRobbery", function(_, cb)
         cb(1)
-        local remain = lib.callback.await('Paragon-Shops:Server:GetRobberyCooldown', false)
+        if not CurrentShop then return end
+        local remain = lib.callback.await('Paragon-Shops:Server:GetRobberyCooldown', false, CurrentShop.id, CurrentShop.location)
         if remain and remain > 0 then
                 robberyCooldown = GetGameTimer() + remain
         end
@@ -291,8 +292,6 @@ RegisterNUICallback("startRobbery", function(_, cb)
                 lib.notify({ description = ('Du musst noch %s Sekunden warten.'):format(r), type = 'error' })
                 return
         end
-
-        if not CurrentShop then return end
 
         TriggerServerEvent('Paragon-Shops:Server:RobberyStarted', CurrentShop.id, CurrentShop.location)
 
@@ -344,7 +343,7 @@ RegisterNUICallback("startRobbery", function(_, cb)
         if aborted then
                 lib.notify({ description = 'Raub abgebrochen', type = 'error' })
         end
-        TriggerServerEvent('Paragon-Shops:Server:RobberyReward', progress)
+        TriggerServerEvent('Paragon-Shops:Server:RobberyReward', progress, CurrentShop.id, CurrentShop.location)
         robberyCooldown = GetGameTimer() + (config.robbery.cooldown or 60000)
 end)
 
@@ -526,10 +525,7 @@ RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
     ESX.PlayerData = xPlayer
     UpdateShopData()
-    local remain = lib.callback.await('Paragon-Shops:Server:GetRobberyCooldown', false)
-    if remain and remain > 0 then
-        robberyCooldown = GetGameTimer() + remain
-    end
+    robberyCooldown = 0
 end)
 
 RegisterNetEvent('esx:setJob')
