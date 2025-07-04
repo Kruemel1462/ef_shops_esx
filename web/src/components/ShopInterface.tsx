@@ -48,7 +48,7 @@ function PlayerData() {
 }
 
 export default function ShopInterface() {
-        const { SellingMode, setSellingMode } = useStoreShop();
+        const { SellingMode, setSellingMode, CurrentShop } = useStoreShop();
         return (
                 <div className="flex size-full flex-col gap-1">
                         <div className="flex w-full items-center justify-between gap-2">
