@@ -229,6 +229,22 @@ RegisterNuiCallback("purchaseItems", function(data, cb)
         cb(success)
 end)
 
+RegisterNuiCallback("getInventory", function(_, cb)
+        local items = lib.callback.await('Paragon-Shops:Server:GetInventoryItems', false)
+        SendReactMessage('setInventoryItems', items)
+        cb(1)
+end)
+
+RegisterNuiCallback("sellItem", function(data, cb)
+        if not data or not data.name then cb(false) return end
+        local success = lib.callback.await('Paragon-Shops:Server:SellItem', false, { name = data.name })
+        if success then
+                local items = lib.callback.await('Paragon-Shops:Server:GetInventoryItems', false)
+                SendReactMessage('setInventoryItems', items)
+        end
+        cb(success)
+end)
+
 RegisterNUICallback("startRobbery", function(_, cb)
         cb(1)
         local remain = lib.callback.await('Paragon-Shops:Server:GetRobberyCooldown', false)

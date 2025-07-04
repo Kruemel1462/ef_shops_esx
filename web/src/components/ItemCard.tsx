@@ -2,11 +2,12 @@ import { useStoreShop } from "../stores/ShopStore";
 import { useStoreSelf } from "../stores/PlayerDataStore";
 import { ShopItem } from "../types/ShopItem";
 import { SyntheticEvent } from "react";
+import { fetchNui } from "../utils/fetchNui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TooltipPortal } from "@radix-ui/react-tooltip";
 
 export default function ItemCard({ item }: { item: ShopItem }) {
-	const { addItemToCart, cartValue, cartWeight, CartItems } = useStoreShop();
+        const { addItemToCart, cartValue, cartWeight, CartItems, SellingMode } = useStoreShop();
 	const { Weight, MaxWeight, Money, Licenses, Job } = useStoreSelf();
 
         const canNotAfford =
@@ -21,10 +22,39 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 	const hasLicense = (!item.license && true) || (Licenses && Licenses[item.license]) === true;
 	const hasCorrectGrade = !item.jobs || (item.jobs && item.jobs[Job.name] && item.jobs[Job.name] <= Job.grade);
 
-	const disabled = canNotAfford || overWeight || !inStock || !hasLicense || !hasCorrectGrade;
+        const disabled = canNotAfford || overWeight || !inStock || !hasLicense || !hasCorrectGrade;
 
-	return (
-		<Tooltip>
+        if (SellingMode) {
+                return (
+                        <div
+                                className="flex h-full min-h-40 cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all hover:scale-105 hover:bg-card/30 hover:shadow-md"
+                                onClick={() => {
+                                        fetchNui("sellItem", { name: item.name }).then(() => {
+                                                fetchNui("getInventory");
+                                        });
+                                }}
+                        >
+                                <div className="mx-auto flex w-full items-center justify-between gap-2">
+                                        <p className="text-lg font-semibold">${'$'}{item.price}</p>
+                                        <p className="text-lg font-semibold">{item.count}x</p>
+                                </div>
+                                <div className="m-auto h-[80%]">
+                                        <img
+                                                onError={(event: SyntheticEvent<HTMLImageElement, Event>) => {
+                                                        event.currentTarget.src = "./Box.png";
+                                                }}
+                                                className="h-full w-full object-contain"
+                                                src={item.imagePath}
+                                                alt={item.label}
+                                        />
+                                </div>
+                                <div className="text-md text-center font-semibold">{item.label}</div>
+                        </div>
+                );
+        }
+
+        return (
+                <Tooltip>
 			<TooltipPortal>
 				{disabled && (
 					<TooltipContent>
