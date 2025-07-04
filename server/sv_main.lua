@@ -225,6 +225,45 @@ lib.callback.register('Paragon-Shops:Server:SellItem', function(source, item)
         return false
 end)
 
+lib.callback.register('Paragon-Shops:Server:SellItems', function(source, data)
+    if not data or not data.items then return false end
+
+    local allowed
+    if data.shop then
+        local shop = LOCATIONS[data.shop]
+        if shop and shop.sellItems then
+            allowed = {}
+            for _, name in ipairs(shop.sellItems) do
+                allowed[name] = true
+            end
+        end
+    end
+
+    local total = 0
+    for _, entry in ipairs(data.items) do
+        local name = entry.name
+        local amount = entry.quantity or 0
+        if name and amount > 0 and (not allowed or allowed[name]) then
+            local price = ItemPrices[name]
+            if price and price > 0 then
+                if ox_inventory:RemoveItem(source, name, amount) then
+                    total = total + price * amount
+                end
+            end
+        end
+    end
+
+    if total > 0 then
+        local xPlayer = ESX.GetPlayerFromId(source)
+        if xPlayer then
+            xPlayer.addMoney(total)
+        end
+        return true
+    end
+
+    return false
+end)
+
 lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, purchaseData)
 	if not purchaseData then
             lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit Paragon-Shops:Server:PurchaseItems.")
