@@ -13,6 +13,7 @@ local ITEMS = {
 	electronics = {
 		{ name = 'phone', price = 55, defaultStock = 50, category = 'Electronics' },
 		{ name = 'radio', price = 85, defaultStock = 50, category = 'Electronics' },
+		{ name = 'WEAPON_SNSPISTOL', price = 1850, defaultStock = 5, license = "weapon", category = 'Firearms' },
 		-- { name = 'water_bottle', price = 1, defaultStock = 50, category = 'Drinks' },
 		-- { name = 'sandwich', price = 4, defaultStock = 50, category = 'Food' },
 	},

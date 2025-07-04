@@ -55,6 +55,28 @@ end
 -- Hilfsfunktion um PlayerData zu aktualisieren
 local function UpdatePlayerData()
 	ESX.PlayerData = ESX.GetPlayerData()
+	-- Lizenzen direkt hier aktualisieren
+	if ESX.PlayerData and ESX.PlayerData.licenses then
+		PlayerLicenses = ESX.PlayerData.licenses
+	else
+		-- Alternative: Versuche über verschiedene ESX Callback-Methoden
+		if ESX.TriggerServerCallback then
+			-- Methode 1: esx_license
+			ESX.TriggerServerCallback('esx_license:getLicenses', function(licenses)
+				if licenses then
+					PlayerLicenses = licenses
+				end
+			end, GetPlayerServerId(PlayerId()))
+			
+			-- Methode 2: esx_license mit anderem Callback-Namen
+			ESX.TriggerServerCallback('esx_license:checkLicense', function(hasWeaponLicense)
+				PlayerLicenses.weapon = hasWeaponLicense
+			end, GetPlayerServerId(PlayerId()), 'weapon')
+		end
+	end
+	
+	-- Debug: Zeige die gefundenen Lizenzen
+	lib.print.debug("PlayerData licenses:", json.encode(PlayerLicenses))
 end
 
 -- Verbesserte Hilfsfunktion um Geld-Daten zu formatieren
@@ -92,15 +114,12 @@ local function GetPlayerMoney()
     }
 end
 
+-- Variable für Lizenzen
+local PlayerLicenses = {}
+
 -- Hilfsfunktion um Lizenzen zu holen
 local function GetPlayerLicenses()
-	local licenses = {}
-	ESX.TriggerServerCallback('esx_license:checkLicense', function(hasLicense)
-		-- Hier könntest du verschiedene Lizenzen prüfen
-	end, GetPlayerServerId(PlayerId()), 'weapon')
-	
-	-- Fallback für einfache Lizenzprüfung
-	return ESX.PlayerData.licenses or {}
+    return PlayerLicenses
 end
 
 ---@param data { type: string, location?: number }
@@ -185,6 +204,9 @@ local function openShop(data)
 		},
 		licenses = GetPlayerLicenses()
 	})
+	
+	-- Debug: Lizenz-Daten loggen
+	lib.print.debug("Player licenses:", json.encode(GetPlayerLicenses()))
         
         -- Nur ShopItems senden wenn der Shop kaufbare Items hat
         if canBuy then
@@ -197,6 +219,9 @@ local function UpdateShopData()
     if not ShopOpen then return end
     
     UpdatePlayerData()
+    local licenses = GetPlayerLicenses()
+    lib.print.debug("UpdateShopData - Licenses:", json.encode(licenses))
+    
     SendReactMessage("setSelfData", {
         weight = exports.ox_inventory:GetPlayerWeight(),
         maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
@@ -205,7 +230,7 @@ local function UpdateShopData()
             name = ESX.PlayerData.job.name,
             grade = ESX.PlayerData.job.grade
         },
-        licenses = GetPlayerLicenses()
+        licenses = licenses
     })
 end
 
@@ -534,6 +559,19 @@ AddEventHandler('esx:setJob', function(job)
     UpdateShopData()
 end)
 
+-- Event für Lizenz-Updates (falls das System esx_license verwendet)
+RegisterNetEvent('esx_license:addLicense')
+AddEventHandler('esx_license:addLicense', function(type)
+    PlayerLicenses[type] = true
+    UpdateShopData()
+end)
+
+RegisterNetEvent('esx_license:removeLicense')
+AddEventHandler('esx_license:removeLicense', function(type)
+    PlayerLicenses[type] = false
+    UpdateShopData()
+end)
+
 RegisterNetEvent('esx:setAccountMoney')
 AddEventHandler('esx:setAccountMoney', function(account)
     -- Aktualisiere die lokalen PlayerData
@@ -675,3 +713,24 @@ AddEventHandler('Paragon-Shops:Client:PoliceDispatch', function(coords)
         end)
     end
 end)
+
+-- Debug-Commands für Lizenz-Tests
+RegisterCommand('giveweaponlicense', function()
+    PlayerLicenses.weapon = true
+    lib.notify({ title = "Debug", description = "Weapon license added", type = "success" })
+    if ShopOpen then
+        UpdateShopData()
+    end
+end, false)
+
+RegisterCommand('removeweaponlicense', function()
+    PlayerLicenses.weapon = false
+    lib.notify({ title = "Debug", description = "Weapon license removed", type = "error" })
+    if ShopOpen then
+        UpdateShopData()
+    end
+end, false)
+
+RegisterCommand('checklicenses', function()
+    lib.notify({ title = "Debug", description = "Licenses: " .. json.encode(PlayerLicenses), type = "info" })
+end, false)
