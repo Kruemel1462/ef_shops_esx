@@ -6,6 +6,7 @@ A shops system made in React for es_extended and ox_inventory
 # Features
 - Client-side purchase validation (cash/card/weight/stock) + server-side security checks
 - Shop stock (restocked on restart)
+- Sell multiple items at once with a single request
 - Price fluctuation
 - Hooks - handle post item purchases (example: registering weapons automatically in your MDT)
 - Vendors can be peds or objects
