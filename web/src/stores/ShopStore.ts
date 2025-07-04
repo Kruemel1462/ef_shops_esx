@@ -2,14 +2,19 @@ import { create } from "zustand";
 import { CartItem, Shop, ShopItem } from "../types/ShopItem";
 
 type ShopItems = {
-	CurrentShop?: Shop;
-	ShopItems?: ShopItem[];
-	categorizedItems: Record<string, ShopItem[]>;
-	CartItems: CartItem[];
-	cartWeight: number;
-	cartValue: number;
-	setCurrentShop: (shop: Shop) => void;
-	setShopItems: (items: ShopItem[]) => void;
+        CurrentShop?: Shop;
+        ShopItems?: ShopItem[];
+        categorizedItems: Record<string, ShopItem[]>;
+        InventoryItems?: ShopItem[];
+        inventoryCategorized: Record<string, ShopItem[]>;
+        SellingMode: boolean;
+        CartItems: CartItem[];
+        cartWeight: number;
+        cartValue: number;
+        setCurrentShop: (shop: Shop) => void;
+        setShopItems: (items: ShopItem[]) => void;
+        setInventoryItems: (items: ShopItem[]) => void;
+        setSellingMode: (val: boolean) => void;
 	addItemToCart: (item: ShopItem, amount?: number) => void;
 	removeItemFromCart: (itemId: number, amount?: number, removeAll?: boolean) => void;
 	clearCart: () => void;
@@ -17,13 +22,16 @@ type ShopItems = {
 };
 
 export const useStoreShop = create<ShopItems>((set, get) => ({
-	// Initial State
-	CurrentShop: undefined,
-	ShopItems: undefined,
-	categorizedItems: {},
-	CartItems: [],
-	cartWeight: 0,
-	cartValue: 0,
+        // Initial State
+        CurrentShop: undefined,
+        ShopItems: undefined,
+        categorizedItems: {},
+        InventoryItems: undefined,
+        inventoryCategorized: {},
+        SellingMode: false,
+        CartItems: [],
+        cartWeight: 0,
+        cartValue: 0,
 
 	setCurrentShop: (shop: Shop) => {
 		set(() => ({
@@ -31,8 +39,8 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
 		}));
 	},
 
-	setShopItems: (items: ShopItem[]) => {
-		const categorizedItems: Record<string, ShopItem[]> = {};
+        setShopItems: (items: ShopItem[]) => {
+                const categorizedItems: Record<string, ShopItem[]> = {};
 
 		items.forEach((item) => {
 			const category = item.category || "Misc";
@@ -42,11 +50,25 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
 			categorizedItems[category].push(item);
 		});
 
-		set(() => ({
-			ShopItems: [...items],
-			categorizedItems,
-		}));
-	},
+                set(() => ({
+                        ShopItems: [...items],
+                        categorizedItems,
+                }));
+        },
+
+        setInventoryItems: (items: ShopItem[]) => {
+                const categorized: Record<string, ShopItem[]> = { Inventory: items };
+                set(() => ({
+                        InventoryItems: [...items],
+                        inventoryCategorized: categorized,
+                }));
+        },
+
+        setSellingMode: (val: boolean) => {
+                set(() => ({
+                        SellingMode: val,
+                }));
+        },
 
 	addItemToCart: (item: ShopItem, amount: number) => {
 		const { CartItems, cartWeight, cartValue } = get();

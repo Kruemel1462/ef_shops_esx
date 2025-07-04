@@ -48,12 +48,23 @@ function PlayerData() {
 }
 
 export default function ShopInterface() {
-	return (
-		<div className="flex size-full flex-col gap-1">
-			<div className="flex w-full items-center justify-between gap-2">
-				<ShopTitle />
+        const { SellingMode, setSellingMode } = useStoreShop();
+        return (
+                <div className="flex size-full flex-col gap-1">
+                        <div className="flex w-full items-center justify-between gap-2">
+                                <ShopTitle />
                                 <div className="flex items-center gap-2">
                                         <PlayerData />
+                                        <Button
+                                                className="bg-indigo-700/20 text-indigo-300 hover:bg-indigo-800/20"
+                                                variant="secondary"
+                                                onClick={() => {
+                                                        if (!SellingMode) fetchNui("getInventory");
+                                                        setSellingMode(!SellingMode);
+                                                }}
+                                        >
+                                                {SellingMode ? "Kaufen" : "Verkaufen"}
+                                        </Button>
                                         <Button
                                                 className="bg-red-700/20 text-red-300 hover:bg-red-800/20"
                                                 variant="secondary"
@@ -74,10 +85,10 @@ export default function ShopInterface() {
                                         </Button>
                                 </div>
 			</div>
-			<div className="flex h-0 w-full grow items-center gap-2">
-				<ShopGrid />
-				<Cart />
-			</div>
-		</div>
-	);
+                        <div className="flex h-0 w-full grow items-center gap-2">
+                                <ShopGrid />
+                                {!SellingMode && <Cart />}
+                        </div>
+                </div>
+        );
 }

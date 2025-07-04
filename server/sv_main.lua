@@ -33,6 +33,8 @@ end
 
 local ox_inventory = exports.ox_inventory
 local ITEMS = ox_inventory:Items()
+local SellPriceConfig = require 'config.sell_prices'
+local ItemPrices = {}
 
 local PRODUCTS = require 'config.shop_items' ---@type table<string, table<string, ShopItem>>
 local LOCATIONS = require 'config.locations' ---@type type<string, ShopLocation>
@@ -152,13 +154,55 @@ lib.callback.register("Paragon-Shops:Server:GetSocietyMoney", function(source, s
 end)
 
 local mapBySubfield = function(tbl, subfield)
-	local mapped = {}
-	for i = 1, #tbl do
-		local item = tbl[i]
-		mapped[item[subfield]] = item
-	end
-	return mapped
+        local mapped = {}
+        for i = 1, #tbl do
+                local item = tbl[i]
+                mapped[item[subfield]] = item
+        end
+        return mapped
 end
+
+lib.callback.register('Paragon-Shops:Server:GetInventoryItems', function(source)
+        local inv = ox_inventory:GetInventory(source)
+        if not inv or not inv.items then return {} end
+
+        local items = {}
+        local id = 0
+        for _, item in pairs(inv.items) do
+                if item.count and item.count > 0 then
+                        id = id + 1
+                        local data = ITEMS[item.name]
+                        items[#items + 1] = {
+                                id = id,
+                                name = item.name,
+                                label = data and data.label or item.name,
+                                price = ItemPrices[item.name] or 0,
+                                weight = data and data.weight or 0,
+                                count = item.count,
+                                imagePath = data and data.client and data.client.image
+                        }
+                end
+        end
+
+        table.sort(items, function(a,b) return a.name < b.name end)
+        return items
+end)
+
+lib.callback.register('Paragon-Shops:Server:SellItem', function(source, item)
+        if not item or not item.name then return false end
+        local price = ItemPrices[item.name]
+        if not price or price <= 0 then return false end
+
+        local success = ox_inventory:RemoveItem(source, item.name, 1)
+        if success then
+                local xPlayer = ESX.GetPlayerFromId(source)
+                if xPlayer then
+                        xPlayer.addMoney(price)
+                end
+                return true
+        end
+        return false
+end)
 
 lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, purchaseData)
 	if not purchaseData then
@@ -410,15 +454,16 @@ AddEventHandler('onResourceStart', function(resource)
                 loadCooldowns()
         end
 
-	-- Validate items exist in ox_inventory
-	for productType, productData in pairs(PRODUCTS) do
-		for _, item in pairs(productData) do
-			if not ITEMS[(string.find(item.name, "weapon_") and (item.name):upper()) or item.name] then
-				lib.print.error("Invalid Item: ", item.name, "in product table:", productType, "^7")
-				productData[item] = nil
-			end
-		end
-	end
+        -- Validate items exist in ox_inventory
+        for productType, productData in pairs(PRODUCTS) do
+                for _, item in pairs(productData) do
+                        if not ITEMS[(string.find(item.name, "weapon_") and (item.name):upper()) or item.name] then
+                                lib.print.error("Invalid Item: ", item.name, "in product table:", productType, "^7")
+                                productData[item] = nil
+                        end
+                        ItemPrices[item.name] = SellPriceConfig[item.name] or math.floor(item.price * 0.5)
+                end
+        end
 
 	-- Register shops
 	for shopID, shopData in pairs(LOCATIONS) do
