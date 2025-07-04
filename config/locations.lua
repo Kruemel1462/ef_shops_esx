@@ -153,25 +153,41 @@ return {
                         color = 1,
                 }
        },
-	digitalden = {
-		label = "Digital Den",
-		model = {
-			`S_M_M_LifeInvad_01`,
-			`IG_Ramp_Hipster`,
-			`A_M_Y_Hipster_02`,
-			`A_F_Y_Hipster_01`,
-			`IG_LifeInvad_01`,
-			`IG_LifeInvad_02`,
-			`CS_LifeInvad_01`,
-		},
-		coords = {
-			vector4(240.05, -897.57, 29.62, 159.74)
-		},
+       digitalden = {
+               label = "Digital Den",
+               model = {
+                       `S_M_M_LifeInvad_01`,
+                       `IG_Ramp_Hipster`,
+                       `A_M_Y_Hipster_02`,
+                       `A_F_Y_Hipster_01`,
+                       `IG_LifeInvad_01`,
+                       `IG_LifeInvad_02`,
+                       `CS_LifeInvad_01`,
+               },
+               coords = {
+                       vector4(240.05, -897.57, 29.62, 159.74)
+               },
+               shopItems = "electronics",
+               sellItems = { 'phone', 'radio' },
+               blip = {
+                       sprite = 606,
+                       color = 7,
+               }
+       },
+
+       buyonly = {
+                label = "Buy Only Shop",
+                coords = {
+                        vector4(250.0, -500.0, 28.0, 0.0)
+                },
                 shopItems = "electronics",
-                sellItems = { 'phone', 'radio' },
-                blip = {
-                        sprite = 606,
-                        color = 7,
-                }
+       },
+
+       sellonly = {
+                label = "Sell Only Shop",
+                coords = {
+                        vector4(260.0, -500.0, 28.0, 0.0)
+                },
+                sellItems = { 'phone', 'radio', 'lockpick' },
        },
 }

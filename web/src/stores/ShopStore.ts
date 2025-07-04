@@ -41,11 +41,12 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
         cartValue: 0,
         sellCartValue: 0,
 
-	setCurrentShop: (shop: Shop) => {
-		set(() => ({
-			CurrentShop: shop,
-		}));
-	},
+        setCurrentShop: (shop: Shop) => {
+                set(() => ({
+                        CurrentShop: shop,
+                        SellingMode: shop.canBuy ? false : true,
+                }));
+        },
 
         setShopItems: (items: ShopItem[]) => {
                 const categorizedItems: Record<string, ShopItem[]> = {};

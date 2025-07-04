@@ -167,7 +167,9 @@ local function openShop(data)
 		licenses = GetPlayerLicenses()
 	})
         CurrentShop = { id = data.type, location = data.location }
-        SendReactMessage("setCurrentShop", { id = data.type, location = data.location, label = LOCATIONS[data.type].label })
+        local canBuy = shopData.shopItems ~= nil
+        local canSell = shopData.sellItems ~= nil and shopData.sellItems ~= false
+        SendReactMessage("setCurrentShop", { id = data.type, location = data.location, label = LOCATIONS[data.type].label, canBuy = canBuy, canSell = canSell })
         SendReactMessage("setShopItems", shopItems)
 end
 
