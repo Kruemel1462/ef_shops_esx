@@ -14,8 +14,8 @@ function GetItemIcon(item)
 		return
 	end
 
-	if itemData?.client?.image then
-		return itemData?.client?.image
+	if itemData and itemData.client and itemData.client.image then
+		return itemData.client.image
 	end
 
 	local path = ("web/images/%s"):format(item .. ".png")

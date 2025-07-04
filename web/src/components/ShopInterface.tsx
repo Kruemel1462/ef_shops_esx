@@ -50,7 +50,11 @@ function PlayerData() {
 
 export default function ShopInterface() {
         const { SellingMode, setSellingMode, CurrentShop } = useStoreShop();
-        const showToggle = CurrentShop?.canBuy && CurrentShop?.canSell;
+        
+        // Defensive Programmierung - sichere Standardwerte
+        const canBuy = CurrentShop?.canBuy === true;
+        const canSell = CurrentShop?.canSell === true;
+        const showToggle = CurrentShop && canBuy && canSell;
         return (
                 <div className="flex size-full flex-col gap-1">
                         <div className="flex w-full items-center justify-between gap-2">

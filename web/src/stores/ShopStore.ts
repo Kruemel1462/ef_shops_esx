@@ -13,7 +13,7 @@ type ShopItems = {
         cartWeight: number;
         cartValue: number;
         sellCartValue: number;
-        setCurrentShop: (shop: Shop) => void;
+        setCurrentShop: (shop: Shop | null) => void;
         setShopItems: (items: ShopItem[]) => void;
         setInventoryItems: (items: ShopItem[]) => void;
         setSellingMode: (val: boolean) => void;
@@ -41,10 +41,10 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
         cartValue: 0,
         sellCartValue: 0,
 
-        setCurrentShop: (shop: Shop) => {
+        setCurrentShop: (shop: Shop | null) => {
                 set(() => ({
                         CurrentShop: shop,
-                        SellingMode: shop.canBuy ? false : true,
+                        SellingMode: shop ? (!shop.canBuy && shop.canSell ? true : false) : false,
                 }));
         },
 

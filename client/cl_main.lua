@@ -142,19 +142,38 @@ local function openShop(data)
 		return
         end
 
-        for _, item in pairs(shopItems) do
-		local productData = PRODUCTS[shopData.shopItems][item.id]
+        -- Nur Shop-Items verarbeiten, wenn der Shop welche hat
+        if shopData.shopItems then
+                for _, item in pairs(shopItems) do
+                        local productData = PRODUCTS[shopData.shopItems][item.id]
 
-		item.label = productData.metadata?.label or ITEMS[item.name]?.label
-		item.weight = productData.metadata?.weight or ITEMS[item.name]?.weight
-		item.category = productData.category
-		item.imagePath = productData.metadata?.imageurl or GetItemIcon(item.name)
-		item.jobs = productData.jobs
+                        item.label = (productData.metadata and productData.metadata.label) or (ITEMS[item.name] and ITEMS[item.name].label) or item.name
+                        item.weight = (productData.metadata and productData.metadata.weight) or (ITEMS[item.name] and ITEMS[item.name].weight) or 0
+                        item.category = productData.category
+                        item.imagePath = (productData.metadata and productData.metadata.imageurl) or GetItemIcon(item.name)
+                        item.jobs = productData.jobs
+                end
         end
 
         societyMoney = lib.callback.await('Paragon-Shops:Server:GetSocietyMoney', false, data.type)
 
         UpdatePlayerData()
+
+        CurrentShop = { id = data.type, location = data.location }
+        local canBuy = shopData.shopItems ~= nil
+        local canSell = shopData.sellItems ~= nil and shopData.sellItems ~= false
+        
+        -- Erst die Shop-Daten senden, dann die Self-Daten und Shop-Items
+        local shopInfo = {
+            id = data.type,
+            location = data.location,
+            label = LOCATIONS[data.type].label,
+            canBuy = canBuy,
+            canSell = canSell
+        }
+        
+        lib.print.debug("Sending shop info:", json.encode(shopInfo))
+        SendReactMessage("setCurrentShop", shopInfo)
 
 	SendReactMessage("setSelfData", {
 		weight = exports.ox_inventory:GetPlayerWeight(),
@@ -166,11 +185,11 @@ local function openShop(data)
 		},
 		licenses = GetPlayerLicenses()
 	})
-        CurrentShop = { id = data.type, location = data.location }
-        local canBuy = shopData.shopItems ~= nil
-        local canSell = shopData.sellItems ~= nil and shopData.sellItems ~= false
-        SendReactMessage("setCurrentShop", { id = data.type, location = data.location, label = LOCATIONS[data.type].label, canBuy = canBuy, canSell = canSell })
-        SendReactMessage("setShopItems", shopItems)
+        
+        -- Nur ShopItems senden wenn der Shop kaufbare Items hat
+        if canBuy then
+            SendReactMessage("setShopItems", shopItems)
+        end
 end
 
 -- Funktion um Shop-Daten zu aktualisieren
@@ -192,9 +211,11 @@ end
 
 -- Neue Funktion um Text-UI anzuzeigen
 local function ShowShopText(shopData)
-    lib.showTextUI('[E] - ' .. (shopData.target?.label or "Shop öffnen"), {
+    local label = (shopData.target and shopData.target.label) or "Shop öffnen"
+    local icon = (shopData.target and shopData.target.icon) or "fas fa-cash-register"
+    lib.showTextUI('[E] - ' .. label, {
         position = "top-center",
-        icon = shopData.target?.icon or "fas fa-cash-register"
+        icon = icon
     })
 end
 
@@ -348,7 +369,7 @@ CreateThread(function()
 
 		for locationIndex, locationCoords in pairs(storeData.coords) do
 			-- Blip erstellen
-			if not storeData.blip or not storeData.blip.disabled then
+			if storeData.blip and not storeData.blip.disabled then
 				local StoreBlip = AddBlipForCoord(locationCoords.x, locationCoords.y, locationCoords.z)
 				SetBlipSprite(StoreBlip, storeData.blip.sprite)
 				SetBlipScale(StoreBlip, storeData.blip.scale or 0.7)
@@ -423,7 +444,8 @@ CreateThread(function()
 				end
 
 				-- Nähe-Punkt für E-Taste Interaktion
-				local interactionPoint = lib.points.new(locationCoords, storeData.target?.radius or 2.0)
+				local radius = (storeData.target and storeData.target.radius) or 2.0
+				local interactionPoint = lib.points.new(locationCoords, radius)
 				function interactionPoint:onEnter()
 					NearbyShops[shopID .. locationIndex] = {
 						shopID = shopID,
@@ -444,7 +466,8 @@ CreateThread(function()
 				Points[#Points + 1] = interactionPoint
 			else
 				-- Punkt ohne Entity für E-Taste Interaktion
-				local interactionPoint = lib.points.new(locationCoords, storeData.target?.radius or 2.0)
+				local radius = (storeData.target and storeData.target.radius) or 2.0
+				local interactionPoint = lib.points.new(locationCoords, radius)
 				function interactionPoint:onEnter()
 					NearbyShops[shopID .. locationIndex] = {
 						shopID = shopID,
