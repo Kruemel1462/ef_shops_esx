@@ -9,8 +9,10 @@ type ShopItems = {
         inventoryCategorized: Record<string, ShopItem[]>;
         SellingMode: boolean;
         CartItems: CartItem[];
+        SellCartItems: CartItem[];
         cartWeight: number;
         cartValue: number;
+        sellCartValue: number;
         setCurrentShop: (shop: Shop) => void;
         setShopItems: (items: ShopItem[]) => void;
         setInventoryItems: (items: ShopItem[]) => void;
@@ -18,7 +20,11 @@ type ShopItems = {
 	addItemToCart: (item: ShopItem, amount?: number) => void;
 	removeItemFromCart: (itemId: number, amount?: number, removeAll?: boolean) => void;
 	clearCart: () => void;
+	addItemToSellCart: (item: ShopItem, amount?: number) => void;
+	removeItemFromSellCart: (itemId: number, amount?: number, removeAll?: boolean) => void;
+	clearSellCart: () => void;
 	getShopItemData: (itemId: number) => ShopItem | undefined;
+	getInventoryItemData: (itemId: number) => ShopItem | undefined;
 };
 
 export const useStoreShop = create<ShopItems>((set, get) => ({
@@ -30,8 +36,10 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
         inventoryCategorized: {},
         SellingMode: false,
         CartItems: [],
+        SellCartItems: [],
         cartWeight: 0,
         cartValue: 0,
+        sellCartValue: 0,
 
 	setCurrentShop: (shop: Shop) => {
 		set(() => ({
@@ -68,6 +76,14 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
                 set(() => ({
                         SellingMode: val,
                 }));
+                
+                // Clear sell cart when switching to buy mode
+                if (!val) {
+                        set(() => ({
+                                SellCartItems: [],
+                                sellCartValue: 0,
+                        }));
+                }
         },
 
 	addItemToCart: (item: ShopItem, amount: number) => {
@@ -144,5 +160,74 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
 			return ShopItems.find((item) => item.id === itemId);
 		}
 		return undefined;
+	},
+
+	getInventoryItemData: (itemId: number) => {
+		const { InventoryItems } = get();
+		if (InventoryItems) {
+			return InventoryItems.find((item) => item.id === itemId);
+		}
+		return undefined;
+	},
+
+	addItemToSellCart: (item: ShopItem, amount: number = 1) => {
+		const { SellCartItems, sellCartValue } = get();
+		const existingItemIndex = SellCartItems.findIndex((cartItem) => cartItem.id === item.id);
+
+		const newSellCartValue = sellCartValue + (item.price || 0) * amount;
+
+		if (existingItemIndex >= 0) {
+			// Item already exists in sell cart, increase quantity
+			const updatedSellCartItems = SellCartItems.map((cartItem, index) =>
+				index === existingItemIndex ? { ...cartItem, quantity: cartItem.quantity + amount } : cartItem,
+			);
+			set(() => ({
+				SellCartItems: updatedSellCartItems,
+				sellCartValue: newSellCartValue,
+			}));
+		} else {
+			// Item not in sell cart, add new item
+			const newItem = { id: item.id, name: item.name, quantity: amount, weight: item.weight, price: item.price };
+			set(() => ({
+				SellCartItems: [...SellCartItems, newItem],
+				sellCartValue: newSellCartValue,
+			}));
+		}
+	},
+
+	removeItemFromSellCart: (itemId: number, amount: number = 1, removeAll: boolean = false) => {
+		const { SellCartItems, sellCartValue, getInventoryItemData } = get();
+		const existingItemIndex = SellCartItems.findIndex((cartItem) => cartItem.id === itemId);
+
+		if (existingItemIndex >= 0) {
+			const existingItem = SellCartItems[existingItemIndex];
+			const inventoryItem = getInventoryItemData(existingItem.id);
+			const itemValueReduction = (inventoryItem?.price || 0) * (removeAll ? existingItem.quantity : amount);
+
+			if (existingItem.quantity > 1 && !removeAll) {
+				// Decrease quantity
+				const updatedSellCartItems = SellCartItems.map((cartItem, index) =>
+					index === existingItemIndex ? { ...cartItem, quantity: cartItem.quantity - amount } : cartItem,
+				);
+				set(() => ({
+					SellCartItems: updatedSellCartItems,
+					sellCartValue: sellCartValue - itemValueReduction,
+				}));
+			} else {
+				// Remove item entirely
+				const updatedSellCartItems = SellCartItems.filter((_, index) => index !== existingItemIndex);
+				set(() => ({
+					SellCartItems: updatedSellCartItems,
+					sellCartValue: sellCartValue - itemValueReduction,
+				}));
+			}
+		}
+	},
+
+	clearSellCart: () => {
+		set(() => ({
+			SellCartItems: [],
+			sellCartValue: 0,
+		}));
 	},
 }));

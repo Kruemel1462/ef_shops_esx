@@ -1,4 +1,5 @@
 import Cart from "./Cart";
+import SellCart from "./SellCart";
 import ShopGrid from "./ShopGrid";
 import { fetchNui } from "../utils/fetchNui";
 import { useStoreShop } from "../stores/ShopStore";
@@ -59,7 +60,9 @@ export default function ShopInterface() {
                                                 className="bg-indigo-700/20 text-indigo-300 hover:bg-indigo-800/20"
                                                 variant="secondary"
                                                 onClick={() => {
-                                                        if (!SellingMode) fetchNui("getInventory", { shop: CurrentShop?.id });
+                                                        if (!SellingMode) {
+                                                                fetchNui("getInventory", { shop: CurrentShop?.id });
+                                                        }
                                                         setSellingMode(!SellingMode);
                                                 }}
                                         >
@@ -87,7 +90,7 @@ export default function ShopInterface() {
 			</div>
                         <div className="flex h-0 w-full grow items-center gap-2">
                                 <ShopGrid />
-                                {!SellingMode && <Cart />}
+                                {SellingMode ? <SellCart /> : <Cart />}
                         </div>
                 </div>
         );

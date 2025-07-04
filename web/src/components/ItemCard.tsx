@@ -2,12 +2,11 @@ import { useStoreShop } from "../stores/ShopStore";
 import { useStoreSelf } from "../stores/PlayerDataStore";
 import { ShopItem } from "../types/ShopItem";
 import { SyntheticEvent } from "react";
-import { fetchNui } from "../utils/fetchNui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TooltipPortal } from "@radix-ui/react-tooltip";
 
 export default function ItemCard({ item }: { item: ShopItem }) {
-        const { addItemToCart, cartValue, cartWeight, CartItems, SellingMode, CurrentShop } = useStoreShop();
+        const { addItemToCart, cartValue, cartWeight, CartItems, SellingMode, CurrentShop, addItemToSellCart, SellCartItems } = useStoreShop();
 	const { Weight, MaxWeight, Money, Licenses, Job } = useStoreSelf();
 
         const canNotAfford =
@@ -25,13 +24,18 @@ export default function ItemCard({ item }: { item: ShopItem }) {
         const disabled = canNotAfford || overWeight || !inStock || !hasLicense || !hasCorrectGrade;
 
         if (SellingMode) {
+                const currentItemQuantityInSellCart = SellCartItems.reduce((total, cartItem) => {
+                        return cartItem.id === item.id ? total + cartItem.quantity : total;
+                }, 0);
+                const maxCanSell = (item.count || 0) - currentItemQuantityInSellCart;
+                const canSell = maxCanSell > 0;
+
                 return (
                         <div
-                                className="flex h-full min-h-40 cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all hover:scale-105 hover:bg-card/30 hover:shadow-md"
+                                className={`flex h-full min-h-40 cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all hover:scale-105 hover:bg-card/30 hover:shadow-md ${!canSell ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 onClick={() => {
-                                        fetchNui("sellItem", { name: item.name, shop: CurrentShop?.id }).then(() => {
-                                                fetchNui("getInventory", { shop: CurrentShop?.id });
-                                        });
+                                        if (!canSell) return;
+                                        addItemToSellCart(item, 1);
                                 }}
                         >
                                 <div className="mx-auto flex w-full items-center justify-between gap-2">
