@@ -110,9 +110,12 @@ end
 ---@param coords vector3
 local function sendPoliceDispatch(coords)
     for _, playerId in ipairs(GetPlayers()) do
-        local xPlayer = ESX.GetPlayerFromId(playerId)
-        if xPlayer and xPlayer.job and xPlayer.job.name == 'police' then
-            TriggerClientEvent('Paragon-Shops:Client:PoliceDispatch', playerId, coords)
+        local playerIdNum = tonumber(playerId)
+        if playerIdNum then
+            local xPlayer = ESX.GetPlayerFromId(playerIdNum)
+            if xPlayer and xPlayer.job and xPlayer.job.name == 'police' then
+                TriggerClientEvent('Paragon-Shops:Client:PoliceDispatch', playerIdNum, coords)
+            end
         end
     end
 end
@@ -608,7 +611,7 @@ lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, pur
 	end
 
         if #dropItems > 0 then
-                exports.ox_inventory:CustomDrop('Shop Drop', dropItems, GetEntityCoords(GetPlayerPed(source)), #dropItems, 10000, GetPlayerRoutingBucket(source), `prop_cs_shopping_bag`)
+                exports.ox_inventory:CustomDrop('Shop Drop', dropItems, GetEntityCoords(GetPlayerPed(source)), #dropItems, 10000, GetPlayerRoutingBucket(source), GetHashKey('prop_cs_shopping_bag'))
         end
 
         sendWebhookLog('Items Purchased', string.format('%s bought %s from %s for $%d', GetPlayerName(source), purchaseReason, shopData.label or shopType, totalPrice))
@@ -673,5 +676,9 @@ AddEventHandler('onResourceStart', function(resource)
 		::continue::
 	end
 	
-        lib.print.info("Paragon-Shops loaded successfully with " .. lib.table.tablesize(ShopData) .. " shop types")
+        local shopCount = 0
+        for _ in pairs(ShopData) do
+                shopCount = shopCount + 1
+        end
+        lib.print.info("Paragon-Shops loaded successfully with " .. shopCount .. " shop types")
 end)
