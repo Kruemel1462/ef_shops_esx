@@ -7,6 +7,60 @@ ESX = exports['es_extended']:getSharedObject()
 
 local config = require 'config.config'
 
+-- Server-Callback für Lizenzabfrage
+lib.callback.register('Paragon-Shops:Server:GetPlayerLicenses', function(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then 
+        return {} 
+    end
+
+    local identifier = xPlayer.identifier
+    if not identifier then 
+        return {} 
+    end
+    
+    local result = MySQL.query.await('SELECT type FROM user_licenses WHERE owner = ?', {identifier})
+    local licenses = {}
+    
+    if result and #result > 0 then
+        for _, license in ipairs(result) do
+            licenses[license.type] = true
+        end
+    end
+    
+    return licenses
+end)
+
+-- Debug Command für Server-seitige Lizenzprüfung (entfernt für Produktion)
+-- RegisterCommand('serverlicensecheck', function(source, args)
+--     if source == 0 then -- Server console
+--         if args[1] then
+--             local targetSource = tonumber(args[1])
+--             if targetSource then
+--                 local xPlayer = ESX.GetPlayerFromId(targetSource)
+--                 if xPlayer then
+--                     local identifier = xPlayer.identifier
+--                     local result = MySQL.query.await('SELECT type FROM user_licenses WHERE owner = ?', {identifier})
+--                     print("License check for " .. GetPlayerName(targetSource) .. " (" .. identifier .. "):")
+--                     if result and #result > 0 then
+--                         for _, license in ipairs(result) do
+--                             print("  - " .. license.type)
+--                         end
+--                     else
+--                         print("  No licenses found")
+--                     end
+--                 else
+--                     print("Player not found")
+--                 end
+--             else
+--                 print("Invalid player ID")
+--             end
+--         else
+--             print("Usage: serverlicensecheck <playerid>")
+--         end
+--     end
+-- end, true)
+
 local shopCooldowns = {}
 local activeRobberies = {}
 

@@ -52,33 +52,6 @@ local function setShopVisible(shouldShow)
 	SendReactMessage("setVisible", shouldShow)
 end
 
--- Hilfsfunktion um PlayerData zu aktualisieren
-local function UpdatePlayerData()
-	ESX.PlayerData = ESX.GetPlayerData()
-	-- Lizenzen direkt hier aktualisieren
-	if ESX.PlayerData and ESX.PlayerData.licenses then
-		PlayerLicenses = ESX.PlayerData.licenses
-	else
-		-- Alternative: Versuche über verschiedene ESX Callback-Methoden
-		if ESX.TriggerServerCallback then
-			-- Methode 1: esx_license
-			ESX.TriggerServerCallback('esx_license:getLicenses', function(licenses)
-				if licenses then
-					PlayerLicenses = licenses
-				end
-			end, GetPlayerServerId(PlayerId()))
-			
-			-- Methode 2: esx_license mit anderem Callback-Namen
-			ESX.TriggerServerCallback('esx_license:checkLicense', function(hasWeaponLicense)
-				PlayerLicenses.weapon = hasWeaponLicense
-			end, GetPlayerServerId(PlayerId()), 'weapon')
-		end
-	end
-	
-	-- Debug: Zeige die gefundenen Lizenzen
-	lib.print.debug("PlayerData licenses:", json.encode(PlayerLicenses))
-end
-
 -- Verbesserte Hilfsfunktion um Geld-Daten zu formatieren
 local function GetPlayerMoney()
     -- Stelle sicher, dass PlayerData aktuell ist
@@ -107,11 +80,45 @@ local function GetPlayerMoney()
         cashMoney = ESX.PlayerData.money
     end
     
+    -- Society Money vom Server abfragen (wenn verfügbar)
+    local societyMoney = 0
+    if ShopOpen and CurrentShop then
+        societyMoney = lib.callback.await('Paragon-Shops:Server:GetSocietyMoney', false, CurrentShop.id) or 0
+    end
+    
     return {
         Cash = cashMoney,
         Bank = bankMoney,
         Society = societyMoney
     }
+end
+
+-- Hilfsfunktion um PlayerData zu aktualisieren
+local function UpdatePlayerData()
+	ESX.PlayerData = ESX.GetPlayerData()
+	
+	-- Lizenzen über unseren eigenen Server-Callback laden
+	lib.callback('Paragon-Shops:Server:GetPlayerLicenses', false, function(licenses)
+		if licenses then
+			PlayerLicenses = licenses
+		else
+			PlayerLicenses = {}
+		end
+		
+		-- Daten ans Frontend senden nach dem Lizenzladen
+		if ShopOpen then
+			SendReactMessage("setSelfData", {
+				weight = exports.ox_inventory:GetPlayerWeight(),
+				maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
+				money = GetPlayerMoney(),
+				job = {
+					name = ESX.PlayerData.job.name,
+					grade = ESX.PlayerData.job.grade
+				},
+				licenses = PlayerLicenses
+			})
+		end
+	end)
 end
 
 -- Variable für Lizenzen
@@ -125,8 +132,6 @@ end
 ---@param data { type: string, location?: number }
 local function openShop(data)
 	if not data.location then data.location = 1 end
-
-	lib.print.debug("Opening shop: " .. data.type, "Location: " .. data.location)
 
 	local shopData = LOCATIONS[data.type]
 
@@ -191,22 +196,23 @@ local function openShop(data)
             canSell = canSell
         }
         
-        lib.print.debug("Sending shop info:", json.encode(shopInfo))
         SendReactMessage("setCurrentShop", shopInfo)
 
-	SendReactMessage("setSelfData", {
-		weight = exports.ox_inventory:GetPlayerWeight(),
-		maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
-		money = GetPlayerMoney(),
-		job = {
-			name = ESX.PlayerData.job.name,
-			grade = ESX.PlayerData.job.grade
-		},
-		licenses = GetPlayerLicenses()
-	})
-	
-	-- Debug: Lizenz-Daten loggen
-	lib.print.debug("Player licenses:", json.encode(GetPlayerLicenses()))
+        -- Lizenzen laden und dann Spielerdaten senden
+        lib.callback('Paragon-Shops:Server:GetPlayerLicenses', false, function(licenses)
+            PlayerLicenses = licenses or {}
+            
+            SendReactMessage("setSelfData", {
+                weight = exports.ox_inventory:GetPlayerWeight(),
+                maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
+                money = GetPlayerMoney(),
+                job = {
+                    name = ESX.PlayerData.job.name,
+                    grade = ESX.PlayerData.job.grade
+                },
+                licenses = PlayerLicenses
+            })
+        end)
         
         -- Nur ShopItems senden wenn der Shop kaufbare Items hat
         if canBuy then
@@ -218,20 +224,7 @@ end
 local function UpdateShopData()
     if not ShopOpen then return end
     
-    UpdatePlayerData()
-    local licenses = GetPlayerLicenses()
-    lib.print.debug("UpdateShopData - Licenses:", json.encode(licenses))
-    
-    SendReactMessage("setSelfData", {
-        weight = exports.ox_inventory:GetPlayerWeight(),
-        maxWeight = exports.ox_inventory:GetPlayerMaxWeight(),
-        money = GetPlayerMoney(),
-        job = {
-            name = ESX.PlayerData.job.name,
-            grade = ESX.PlayerData.job.grade
-        },
-        licenses = licenses
-    })
+    UpdatePlayerData() -- Das sendet bereits die Daten ans Frontend
 end
 
 -- Neue Funktion um Text-UI anzuzeigen
@@ -562,14 +555,24 @@ end)
 -- Event für Lizenz-Updates (falls das System esx_license verwendet)
 RegisterNetEvent('esx_license:addLicense')
 AddEventHandler('esx_license:addLicense', function(type)
-    PlayerLicenses[type] = true
-    UpdateShopData()
+    -- Lade alle Lizenzen neu über unseren Server-Callback
+    lib.callback('Paragon-Shops:Server:GetPlayerLicenses', false, function(licenses)
+        if licenses then
+            PlayerLicenses = licenses
+            UpdateShopData()
+        end
+    end)
 end)
 
 RegisterNetEvent('esx_license:removeLicense')
 AddEventHandler('esx_license:removeLicense', function(type)
-    PlayerLicenses[type] = false
-    UpdateShopData()
+    -- Lade alle Lizenzen neu über unseren Server-Callback
+    lib.callback('Paragon-Shops:Server:GetPlayerLicenses', false, function(licenses)
+        if licenses then
+            PlayerLicenses = licenses
+            UpdateShopData()
+        end
+    end)
 end)
 
 RegisterNetEvent('esx:setAccountMoney')
@@ -694,7 +697,7 @@ AddEventHandler('Paragon-Shops:Client:PoliceDispatch', function(coords)
         lib.notify({
             title = 'Ladenüberfall',
             description = ('Ein Shop wird überfallen in der Nähe von %s'):format(street),
-            type = 'inform'
+            type = 'info'
         })
 
         local blip = AddBlipForCoord(coords.x, coords.y, coords.z)
@@ -714,23 +717,32 @@ AddEventHandler('Paragon-Shops:Client:PoliceDispatch', function(coords)
     end
 end)
 
--- Debug-Commands für Lizenz-Tests
-RegisterCommand('giveweaponlicense', function()
-    PlayerLicenses.weapon = true
-    lib.notify({ title = "Debug", description = "Weapon license added", type = "success" })
-    if ShopOpen then
-        UpdateShopData()
-    end
-end, false)
+-- Debug-Commands für Lizenz-Tests (entfernt für Produktion)
+-- RegisterCommand('giveweaponlicense', function()
+--     PlayerLicenses.weapon = true
+--     lib.notify({ title = "Debug", description = "Weapon license added", type = "success" })
+--     if ShopOpen then
+--         UpdateShopData()
+--     end
+-- end, false)
 
-RegisterCommand('removeweaponlicense', function()
-    PlayerLicenses.weapon = false
-    lib.notify({ title = "Debug", description = "Weapon license removed", type = "error" })
-    if ShopOpen then
-        UpdateShopData()
-    end
-end, false)
+-- RegisterCommand('removeweaponlicense', function()
+--     PlayerLicenses.weapon = false
+--     lib.notify({ title = "Debug", description = "Weapon license removed", type = "error" })
+--     if ShopOpen then
+--         UpdateShopData()
+--     end
+-- end, false)
 
-RegisterCommand('checklicenses', function()
-    lib.notify({ title = "Debug", description = "Licenses: " .. json.encode(PlayerLicenses), type = "info" })
-end, false)
+-- RegisterCommand('checklicenses', function()
+--     lib.notify({ 
+--         title = "Debug", 
+--         description = "Check console for license info", 
+--         type = "info" 
+--     })
+--     lib.callback('Paragon-Shops:Server:GetPlayerLicenses', false, function(licenses)
+--         if licenses then
+--             PlayerLicenses = licenses
+--         end
+--     end)
+-- end, false)
