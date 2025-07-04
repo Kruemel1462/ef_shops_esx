@@ -10,6 +10,21 @@ local config = require 'config.config'
 local shopCooldowns = {}
 local activeRobberies = {}
 
+-- Helper to synchronously check player licenses using esx_license data
+---@param source number player source
+---@param licenseType string license name (e.g. 'weapon')
+---@return boolean
+local function playerHasLicense(source, licenseType)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return false end
+
+    local identifier = xPlayer.identifier
+    if not identifier or not licenseType then return false end
+
+    local result = MySQL.scalar.await('SELECT type FROM user_licenses WHERE owner = ? AND type = ?',{identifier, licenseType})
+    return result ~= nil
+end
+
 local function getShopKey(shopId, location)
     return (tostring(shopId) .. '#' .. tostring(location or 1))
 end
@@ -357,20 +372,16 @@ lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, pur
 		local itemData = ITEMS[shopItem.name]
 		local mappedCartItem = mappedCartItems[shopItem.id]
 
-		if mappedCartItem then
-			-- Lizenzprüfung für ESX
-			if shopItem.license then
-				ESX.TriggerServerCallback('esx_license:checkLicense', function(hasLicense)
-					if not hasLicense then
-						TriggerClientEvent('ox_lib:notify', source, { 
-                                title = "Lizenz erforderlich",
-                                description = "Du besitzt nicht die Lizenz, um diesen Gegenstand (" .. shopItem.license .. ") zu kaufen.",
-							type = "error" 
-						})
-						return
-					end
-				end, source, shopItem.license)
-			end
+                if mappedCartItem then
+                        -- Lizenzprüfung für ESX
+                        if shopItem.license and not playerHasLicense(source, shopItem.license) then
+                                TriggerClientEvent('ox_lib:notify', source, {
+                                        title = "Lizenz erforderlich",
+                                        description = "Du besitzt nicht die Lizenz, um diesen Gegenstand (" .. shopItem.license .. ") zu kaufen.",
+                                        type = "error"
+                                })
+                                goto continue
+                        end
 
 			if not exports.ox_inventory:CanCarryItem(source, shopItem.name, mappedCartItem.quantity) then
 				TriggerClientEvent('ox_lib:notify', source, { 
