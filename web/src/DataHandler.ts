@@ -4,7 +4,7 @@ import { useStoreShop } from "./stores/ShopStore";
 import { ShopItem, Shop } from "./types/ShopItem";
 import { fetchNui } from "./utils/fetchNui";
 
-function DataHander() {
+function DataHandler() {
         const { setShopItems, setCurrentShop, clearCart, setInventoryItems } = useStoreShop();
 	const { setSelfData } = useStoreSelf();
 
@@ -26,4 +26,4 @@ function DataHander() {
         });
 }
 
-export default DataHander;
+export default DataHandler;
