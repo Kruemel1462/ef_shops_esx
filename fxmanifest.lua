@@ -33,6 +33,6 @@ files {
 	'web/build/**/*',
 }
 
-depedencies {
-	'ox_lib',
+dependencies {
+        'ox_lib',
 }
