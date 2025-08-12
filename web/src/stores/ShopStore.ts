@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 import { CartItem, Shop, ShopItem } from "../types/ShopItem";
 
 type ShopItems = {

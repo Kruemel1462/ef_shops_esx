@@ -7,7 +7,57 @@ ESX = exports['es_extended']:getSharedObject()
 
 local config = require 'config.config'
 
--- Server-Callback für Lizenzabfrage
+-- Advanced Caching System für Lizenzen
+local licenseCache = {}
+local cacheExpiry = {}
+local CACHE_DURATION = 300 -- 5 Minuten
+
+local function getCachedLicense(identifier, licenseType)
+    local key = identifier .. ":" .. licenseType
+    local now = os.time()
+    
+    if licenseCache[key] and cacheExpiry[key] and cacheExpiry[key] > now then
+        return licenseCache[key]
+    end
+    
+    -- Cache expired or doesn't exist, fetch from database
+    local result = MySQL.scalar.await('SELECT type FROM user_licenses WHERE owner = ? AND type = ?', {identifier, licenseType})
+    
+    licenseCache[key] = result ~= nil
+    cacheExpiry[key] = now + CACHE_DURATION
+    
+    return licenseCache[key]
+end
+
+local function getAllCachedLicenses(identifier)
+    local cacheKey = identifier .. ":all"
+    local now = os.time()
+    
+    if licenseCache[cacheKey] and cacheExpiry[cacheKey] and cacheExpiry[cacheKey] > now then
+        return licenseCache[cacheKey]
+    end
+    
+    -- Fetch all licenses for player
+    local result = MySQL.query.await('SELECT type FROM user_licenses WHERE owner = ?', {identifier})
+    local licenses = {}
+    
+    if result and #result > 0 then
+        for _, license in ipairs(result) do
+            licenses[license.type] = true
+            -- Cache individual licenses too
+            local individualKey = identifier .. ":" .. license.type
+            licenseCache[individualKey] = true
+            cacheExpiry[individualKey] = now + CACHE_DURATION
+        end
+    end
+    
+    licenseCache[cacheKey] = licenses
+    cacheExpiry[cacheKey] = now + CACHE_DURATION
+    
+    return licenses
+end
+
+-- Server-Callback für Lizenzabfrage mit Caching
 lib.callback.register('Paragon-Shops:Server:GetPlayerLicenses', function(source)
     local xPlayer = ESX.GetPlayerFromId(source)
     if not xPlayer then 
@@ -19,16 +69,34 @@ lib.callback.register('Paragon-Shops:Server:GetPlayerLicenses', function(source)
         return {} 
     end
     
-    local result = MySQL.query.await('SELECT type FROM user_licenses WHERE owner = ?', {identifier})
-    local licenses = {}
-    
-    if result and #result > 0 then
-        for _, license in ipairs(result) do
-            licenses[license.type] = true
-        end
+    return getAllCachedLicenses(identifier)
+end)
+
+-- Cache invalidation bei Lizenz-Änderungen
+RegisterNetEvent('esx_license:addLicense')
+AddEventHandler('esx_license:addLicense', function(targetSource, licenseType)
+    local xPlayer = ESX.GetPlayerFromId(targetSource)
+    if xPlayer and xPlayer.identifier then
+        local identifier = xPlayer.identifier
+        -- Invalidate cache
+        licenseCache[identifier .. ":" .. licenseType] = nil
+        licenseCache[identifier .. ":all"] = nil
+        cacheExpiry[identifier .. ":" .. licenseType] = nil
+        cacheExpiry[identifier .. ":all"] = nil
     end
-    
-    return licenses
+end)
+
+RegisterNetEvent('esx_license:removeLicense')
+AddEventHandler('esx_license:removeLicense', function(targetSource, licenseType)
+    local xPlayer = ESX.GetPlayerFromId(targetSource)
+    if xPlayer and xPlayer.identifier then
+        local identifier = xPlayer.identifier
+        -- Invalidate cache
+        licenseCache[identifier .. ":" .. licenseType] = nil
+        licenseCache[identifier .. ":all"] = nil
+        cacheExpiry[identifier .. ":" .. licenseType] = nil
+        cacheExpiry[identifier .. ":all"] = nil
+    end
 end)
 
 -- Debug Command für Server-seitige Lizenzprüfung (entfernt für Produktion)

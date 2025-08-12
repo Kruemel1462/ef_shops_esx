@@ -178,7 +178,7 @@ return {
        buyonly = {
                 label = "Buy Only Shop",
 				model = {
-                       `S_M_M_LifeInvad_01`
+                       "S_M_M_LifeInvad_01"
                },
                 coords = {
                         vector4(229.07, -883.27, 29.59, 346.28)
@@ -192,7 +192,7 @@ return {
        buyonly_test = {
                 label = "Buy Only Shop #2",
 				model = {
-                       `S_M_M_LifeInvad_01`
+                       "S_M_M_LifeInvad_01"
                },
                 coords = {
                         vector4(226.98, -893.11, 29.60, 344.00)
@@ -207,7 +207,7 @@ return {
        sellonly = {
                 label = "Sell Only Shop",
 				model = {
-                       `S_M_M_LifeInvad_01`
+                       "S_M_M_LifeInvad_01"
                },
                 coords = {
                         vector4(225.12, -887.10, 29.60, 226.84)

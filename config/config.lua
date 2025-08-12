@@ -11,7 +11,16 @@ return {
                 vendorRenderDistance = 25.0, -- Distanz für Vendor-Spawning
                 interactionDistance = 2.0, -- Distanz für Shop-Interaktion
                 threadSleepTime = 100, -- Standard Thread Sleep-Zeit (ms)
-                maxConcurrentPurchases = 3 -- Max gleichzeitige Käufe pro Spieler
+                maxConcurrentPurchases = 3, -- Max gleichzeitige Käufe pro Spieler
+                enableMonitoring = true, -- Performance Monitoring aktivieren
+                thresholds = { -- Performance Schwellenwerte (ms)
+                        database_query = 50,
+                        shop_open = 100,
+                        purchase_transaction = 200,
+                        inventory_check = 30,
+                        license_check = 25,
+                        cache_operation = 5
+                }
         },
         
         -- Sicherheits-Einstellungen
