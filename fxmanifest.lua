@@ -1,12 +1,13 @@
 fx_version 'cerulean'
 game 'gta5'
+use_experimental_fxv2_oal 'yes'
 
-name 'Everfall Shops'
-author 'Jellyton'
-version '1.3.0'
-description 'Everfall shops system. Made with React.'
+name 'Everfall Shops Enhanced'
+author 'Jellyton - Enhanced by VentumVSYSTEM'
+version '1.4.0'
+description 'Enhanced Everfall shops system with performance optimizations, security improvements, and better error handling. Made with React.'
 license 'GPL-3.0'
-repository 'https://github.com/jellyton69/paragon_shops'
+repository 'https://github.com/VentumVSYSTEM/ef_shops_esx'
 
 lua54 'yes'
 

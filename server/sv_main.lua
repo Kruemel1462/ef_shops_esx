@@ -64,6 +64,81 @@ end)
 local shopCooldowns = {}
 local activeRobberies = {}
 
+-- Rate Limiting System
+local playerPurchaseHistory = {}
+local playerPurchaseCooldowns = {}
+
+-- Rate Limiting Helper Functions
+local function checkRateLimit(source)
+    if not config.security.enableRateLimit then return true end
+    
+    local now = os.time()
+    local playerId = tostring(source)
+    
+    -- Initialize player history if not exists
+    if not playerPurchaseHistory[playerId] then
+        playerPurchaseHistory[playerId] = {}
+    end
+    
+    -- Clean old entries (older than 1 minute)
+    local history = playerPurchaseHistory[playerId]
+    for i = #history, 1, -1 do
+        if now - history[i] > 60 then
+            table.remove(history, i)
+        end
+    end
+    
+    -- Check if player exceeded rate limit
+    if #history >= config.security.maxPurchasesPerMinute then
+        return false
+    end
+    
+    -- Add current purchase to history
+    table.insert(history, now)
+    return true
+end
+
+local function logSuspiciousActivity(source, activity, details)
+    if not config.security.logSuspiciousActivity then return end
+    
+    local playerName = GetPlayerName(source) or "Unknown"
+    local logMessage = string.format("[SUSPICIOUS] %s (ID: %s) - %s: %s", 
+        playerName, source, activity, details or "No details")
+    
+    lib.print.warn(logMessage)
+    
+    if config.logWebhook and config.logWebhook ~= '' then
+        sendWebhookLog("Suspicious Activity", logMessage)
+    end
+end
+
+local function validatePurchaseData(source, purchaseData)
+    if not purchaseData then
+        logSuspiciousActivity(source, "Invalid Purchase Data", "purchaseData is nil")
+        return false
+    end
+    
+    if not purchaseData.shop then
+        logSuspiciousActivity(source, "Invalid Purchase Data", "shop data missing")
+        return false
+    end
+    
+    if not purchaseData.items or type(purchaseData.items) ~= "table" then
+        logSuspiciousActivity(source, "Invalid Purchase Data", "items data invalid")
+        return false
+    end
+    
+    -- Check max items per purchase
+    if #purchaseData.items > config.security.maxItemsPerPurchase then
+        logSuspiciousActivity(source, "Excessive Items", 
+            string.format("Attempted to buy %d items (max: %d)", 
+            #purchaseData.items, config.security.maxItemsPerPurchase))
+        return false
+    end
+    
+    return true
+end
+
 -- Helper to synchronously check player licenses using esx_license data
 ---@param source number player source
 ---@param licenseType string license name (e.g. 'weapon')
@@ -379,14 +454,20 @@ lib.callback.register('Paragon-Shops:Server:SellItems', function(source, data)
 end)
 
 lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, purchaseData)
-	if not purchaseData then
-            lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit Paragon-Shops:Server:PurchaseItems.")
+	-- Rate Limiting Check
+	if not checkRateLimit(source) then
+		logSuspiciousActivity(source, "Rate Limit Exceeded", 
+			string.format("Exceeded %d purchases per minute", config.security.maxPurchasesPerMinute))
+		TriggerClientEvent('ox_lib:notify', source, {
+			title = "Zu schnell",
+			description = "Du kaufst zu schnell ein. Warte einen Moment.",
+			type = "error"
+		})
 		return false
 	end
 
-	if not purchaseData.shop then
-            lib.print.warn(GetPlayerName(source) .. " may be attempting to exploit Paragon-Shops:Server:PurchaseItems.")
-		lib.print.warn(purchaseData)
+	-- Validate purchase data
+	if not validatePurchaseData(source, purchaseData) then
 		return false
 	end
 

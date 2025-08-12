@@ -332,7 +332,7 @@ RegisterNUICallback("startRobbery", function(_, cb)
         lib.showTextUI('[G] - Raub abbrechen', { position = 'top-center' })
         CreateThread(function()
                 while isRobbing do
-                        Wait(0)
+                        Wait(50) -- Performance optimiert: 50ms statt 0ms
                         if IsControlJustReleased(0, config.robbery.abortControl or 47) then
                                 aborted = true
                                 lib.cancelProgress()
@@ -509,10 +509,14 @@ CreateThread(function()
 	end
 end)
 
--- Thread für E-Taste Erkennung
+-- Thread für E-Taste Erkennung - Performance optimiert
 CreateThread(function()
         while true do
+                local sleepTime = 100 -- Standard Sleep-Zeit für bessere Performance
+                
                 if next(NearbyShops) ~= nil and not ShopOpen and not isRobbing then
+                        sleepTime = 0 -- Nur bei nahegelegenen Shops auf 0 setzen
+                        
 			if IsControlJustReleased(0, 38) then -- E-Taste
 				-- Finde den nächsten Shop
 				local playerCoords = GetEntityCoords(cache.ped)
@@ -534,7 +538,7 @@ CreateThread(function()
 				end
 			end
 		end
-		Wait(0)
+		Wait(sleepTime)
 	end
 end)
 
