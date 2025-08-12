@@ -58,6 +58,11 @@ RegisterCommand('shops:performance', function(source, args)
         requestedBy = source == 0 and "Console" or GetPlayerName(source),
         healthy = healthy
     })
+    
+    -- Discord Logging
+    if DiscordLogger then
+        DiscordLogger.LogAdminAction(source, "Performance Report", nil, "Generated performance report - Health: " .. healthMessage)
+    end
 end, true)
 
 -- Reset Performance Metrics Command

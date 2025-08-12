@@ -4,7 +4,20 @@
 return {
         debug = false,
         fluctuatePrices = true,
-        logWebhook = '', -- Discord webhook URL for purchase/sale logs
+        logWebhook = '', -- Discord webhook URL for purchase/sale logs (fallback)
+        
+        -- Discord Logging Konfiguration
+        discord = {
+                enabled = true, -- Discord Logging aktivieren/deaktivieren
+                webhooks = {
+                        purchases = '', -- Webhook für Käufe
+                        sales = '', -- Webhook für Verkäufe
+                        security = '', -- Webhook für Sicherheitsereignisse
+                        admin = '', -- Webhook für Admin-Aktionen
+                        performance = '', -- Webhook für Performance-Alerts
+                        general = '' -- Webhook für allgemeine Events
+                }
+        },
         
         -- Performance Einstellungen
         performance = {

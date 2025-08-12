@@ -333,6 +333,15 @@ RegisterNetEvent('Paragon-Shops:Server:RobberyStarted', function(shopId, locatio
         local coords = shopData.coords[location]
         sendPoliceDispatch(vector3(coords.x, coords.y, coords.z))
     end
+    
+    -- Discord Logging
+    if DiscordLogger then
+        DiscordLogger.LogRobbery(source, {
+            id = shopId,
+            label = shopData.label,
+            location = location
+        }, 0, 0) -- Progress and reward will be updated later
+    end
 end)
 
 RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress, shopId, location)
@@ -764,6 +773,16 @@ lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, pur
         end
 
         sendWebhookLog('Items Purchased', string.format('%s bought %s from %s for $%d', GetPlayerName(source), purchaseReason, shopData.label or shopType, totalPrice))
+        
+        -- Discord Logging Integration
+        if DiscordLogger then
+                DiscordLogger.LogPurchase(source, {
+                        id = purchaseData.shop.id,
+                        label = shopData.label,
+                        location = purchaseData.shop.location
+                }, validCartItems, totalPrice, currency)
+        end
+        
         return true
 end)
 
