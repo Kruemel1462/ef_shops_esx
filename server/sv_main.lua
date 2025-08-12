@@ -313,6 +313,17 @@ lib.callback.register("Paragon-Shops:Server:OpenShop", function(source, shop_typ
                 lib.print.error("Shop not found: " .. shop_type .. " at location " .. location)
                 return nil
         end
+        
+        -- Discord Logging für Shop-Zugriff
+        if DiscordLogger then
+                local shopData = LOCATIONS[shop_type]
+                DiscordLogger.LogShopAccess(source, {
+                        id = shop_type,
+                        label = shopData and shopData.label or shop_type,
+                        location = location
+                }, "open")
+        end
+        
         return shop.inventory
 end)
 
@@ -334,14 +345,7 @@ RegisterNetEvent('Paragon-Shops:Server:RobberyStarted', function(shopId, locatio
         sendPoliceDispatch(vector3(coords.x, coords.y, coords.z))
     end
     
-    -- Discord Logging
-    if DiscordLogger then
-        DiscordLogger.LogRobbery(source, {
-            id = shopId,
-            label = shopData.label,
-            location = location
-        }, 0, 0) -- Progress and reward will be updated later
-    end
+    -- Discord Logging entfernt - wird erst nach der Progressbar geloggt
 end)
 
 RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress, shopId, location)
@@ -362,6 +366,16 @@ RegisterNetEvent('Paragon-Shops:Server:RobberyReward', function(progress, shopId
     local amount = math.floor((config.robbery.reward or 0) * (progress or 0))
     if amount > 0 then
         xPlayer.addMoney(amount)
+    end
+    
+    -- Discord Logging nach der Progressbar mit tatsächlichen Werten
+    if DiscordLogger then
+        local shopData = LOCATIONS[shopId]
+        DiscordLogger.LogRobbery(src, {
+            id = shopId,
+            label = shopData and shopData.label or "Unknown Shop",
+            location = location
+        }, progress, amount)
     end
 end)
 
@@ -476,6 +490,15 @@ lib.callback.register('Paragon-Shops:Server:SellItem', function(source, item)
                         xPlayer.addMoney(price)
                         local label = ITEMS[item.name] and ITEMS[item.name].label or item.name
                         sendWebhookLog('Item Sold', ("%s sold 1x %s for $%d"):format(GetPlayerName(source), label, price))
+                        
+                        -- Discord Logging Integration
+                        if DiscordLogger then
+                                local shopData = item.shop and LOCATIONS[item.shop] or nil
+                                DiscordLogger.LogSale(source, shopData, {{
+                                        name = label,
+                                        quantity = 1
+                                }}, price)
+                        end
                 end
                 return true
         end
@@ -523,6 +546,27 @@ lib.callback.register('Paragon-Shops:Server:SellItems', function(source, data)
             xPlayer.addMoney(total)
             local detail = table.concat(soldItems, "; ")
             sendWebhookLog('Items Sold', string.format('%s sold %s for $%d', GetPlayerName(source), detail, total))
+            
+            -- Discord Logging Integration
+            if DiscordLogger then
+                local shopData = data.shop and LOCATIONS[data.shop] or nil
+                local itemsForLog = {}
+                for _, entry in ipairs(data.items) do
+                    local name = entry.name
+                    local amount = entry.quantity or 0
+                    if name and amount > 0 and (not allowed or allowed[name]) then
+                        local price = ItemPrices[name]
+                        if price and price > 0 then
+                            local label = ITEMS[name] and ITEMS[name].label or name
+                            table.insert(itemsForLog, {
+                                name = label,
+                                quantity = amount
+                            })
+                        end
+                    end
+                end
+                DiscordLogger.LogSale(source, shopData, itemsForLog, total)
+            end
         end
         return true
     end
