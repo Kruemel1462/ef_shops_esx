@@ -226,6 +226,9 @@ RegisterCommand('shops:debug', function(source, args)
         return
     end
     
+    local inv = exports.ox_inventory:GetInventory(targetId) or {}
+    local weightText = (inv.weight or 0) .. "/" .. ((inv.maxWeight or 0))
+
     local debugInfo = {
         "=== Player Debug Info ===",
         "Player: " .. GetPlayerName(targetId) .. " (" .. targetId .. ")",
@@ -233,7 +236,7 @@ RegisterCommand('shops:debug', function(source, args)
         "Job: " .. xPlayer.job.name .. " (Grade: " .. xPlayer.job.grade .. ")",
         "Money: $" .. xPlayer.getMoney(),
         "Bank: $" .. (xPlayer.getAccount('bank') and xPlayer.getAccount('bank').money or 0),
-        "Inventory Weight: " .. (exports.ox_inventory:GetPlayerWeight(targetId) or 0) .. "/" .. (exports.ox_inventory:GetPlayerMaxWeight(targetId) or 0)
+        "Inventory Weight: " .. weightText
     }
     
     local debugText = table.concat(debugInfo, "\n")
@@ -266,8 +269,9 @@ RegisterCommand('shops:reload', function(source, args)
         return
     end
     
-    -- This would require implementing a config reload system
-    local message = "Configuration reload is not yet implemented"
+    -- Trigger server-side config reload and shop reinitialization
+    TriggerEvent('Paragon-Shops:Server:ReloadConfig')
+    local message = "Configuration reloaded successfully"
     
     if source == 0 then
         print("^3" .. message .. "^7")
@@ -279,9 +283,12 @@ RegisterCommand('shops:reload', function(source, args)
         })
     end
     
-    logger:info("Configuration reload requested", {
+    logger:info("Configuration reload executed", {
         requestedBy = source == 0 and "Console" or GetPlayerName(source)
     })
+    if DiscordLogger then
+        DiscordLogger.LogAdminAction(source, 'Reload Config', nil, 'Executed /shops:reload')
+    end
 end, true)
 
 -- Help Command

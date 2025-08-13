@@ -19,7 +19,6 @@ function DataHandler() {
         });
         useNuiEvent("setShopItems", (items: ShopItem[]) => {
                 if (items) setShopItems(items);
-                clearCart();
         });
         useNuiEvent("setInventoryItems", (items: ShopItem[]) => {
                 if (items) setInventoryItems(items);

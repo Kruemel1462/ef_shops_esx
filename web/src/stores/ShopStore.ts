@@ -44,7 +44,7 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
 
         setCurrentShop: (shop: Shop | null) => {
                 set(() => ({
-                        CurrentShop: shop,
+                        CurrentShop: shop || undefined,
                         SellingMode: shop ? (!shop.canBuy && shop.canSell ? true : false) : false,
                 }));
         },

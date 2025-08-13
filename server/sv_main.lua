@@ -6,6 +6,13 @@ if not lib.checkDependency('ox_inventory', '2.20.0') then error() end
 ESX = exports['es_extended']:getSharedObject()
 
 local config = require 'config.config'
+local PerformanceMonitor = require 'shared.sh_performance'
+
+-- Performance Monitor für Server
+local perfMonitor = PerformanceMonitor.new('Server')
+
+-- Vorab-Deklaration für Webhook-Helfer, damit Linter vor Nutzung Bescheid weiß
+local function sendWebhookLog(title, description) end
 
 -- Advanced Caching System für Lizenzen
 local licenseCache = {}
@@ -38,7 +45,12 @@ local function getAllCachedLicenses(identifier)
     end
     
     -- Fetch all licenses for player
+    local startDb = perfMonitor:startTimer('database_query')
     local result = MySQL.query.await('SELECT type FROM user_licenses WHERE owner = ?', {identifier})
+    local durDb = perfMonitor:endTimer('database_query', startDb, { operation = 'get_all_licenses', identifier = identifier })
+    if DiscordLogger and durDb and durDb > (perfMonitor.thresholds and perfMonitor.thresholds.database_query or 50) then
+        DiscordLogger.LogPerformanceAlert('database_query', durDb, perfMonitor.thresholds.database_query or 50, { op = 'get_all_licenses', identifier = identifier })
+    end
     local licenses = {}
     
     if result and #result > 0 then
@@ -218,7 +230,12 @@ local function playerHasLicense(source, licenseType)
     local identifier = xPlayer.identifier
     if not identifier or not licenseType then return false end
 
+    local startLic = perfMonitor:startTimer('license_check')
     local result = MySQL.scalar.await('SELECT type FROM user_licenses WHERE owner = ? AND type = ?',{identifier, licenseType})
+    local durLic = perfMonitor:endTimer('license_check', startLic, { operation = 'license_check', license = licenseType })
+    if DiscordLogger and durLic and durLic > (perfMonitor.thresholds and perfMonitor.thresholds.license_check or 25) then
+        DiscordLogger.LogPerformanceAlert('license_check', durLic, perfMonitor.thresholds.license_check or 25, { license = licenseType })
+    end
     return result ~= nil
 end
 
@@ -240,6 +257,9 @@ end
 ---Send log to Discord webhook if configured
 ---@param title string
 ---@param description string
+-- Forward declaration for linter (actual implementation below)
+local function sendWebhookLog(title, description) end
+
 local function sendWebhookLog(title, description)
     if not config.logWebhook or config.logWebhook == '' then return end
     local payload = json.encode({
@@ -307,10 +327,102 @@ local function registerShop(shopType, shopData)
 	end
 end
 
+-- Initialisierung/Neuaufbau der Shops und Preise
+local function InitializeShops()
+    -- Items und Preise zurücksetzen
+    ITEMS = ox_inventory:Items()
+    ItemPrices = {}
+
+    -- Validate items exist in ox_inventory und Preise berechnen
+    for productType, productData in pairs(PRODUCTS) do
+        for _, item in pairs(productData) do
+            if not ITEMS[(string.find(item.name, 'weapon_') and (item.name):upper()) or item.name] then
+                lib.print.error('Invalid Item: ', item.name, 'in product table:', productType, '^7')
+                productData[item] = nil
+            end
+            ItemPrices[item.name] = SellPriceConfig[item.name] or math.floor(item.price * 0.5)
+        end
+    end
+
+    -- Vorherige ShopData leeren
+    ShopData = {}
+
+    -- Register shops aus LOCATIONS
+    for shopID, shopData in pairs(LOCATIONS) do
+        local shopProducts = {}
+
+        if shopData.shopItems then
+            if not PRODUCTS[shopData.shopItems] then
+                lib.print.error('A valid product ID (' .. tostring(shopData.shopItems) .. ') for [' .. shopID .. '] was not found.')
+                goto continue
+            end
+
+            for item, data in pairs(PRODUCTS[shopData.shopItems]) do
+                shopProducts[#shopProducts + 1] = {
+                    id = tonumber(item) or #shopProducts + 1,
+                    name = data.name,
+                    price = config.fluctuatePrices and (math.floor(data.price * (math.random(80, 120) / 100))) or data.price or 0,
+                    license = data.license,
+                    metadata = data.metadata,
+                    count = data.defaultStock,
+                    jobs = data.jobs
+                }
+            end
+
+            table.sort(shopProducts, function(a, b)
+                return a.name < b.name
+            end)
+        elseif not shopData.sellItems then
+            lib.print.error('Shop [' .. shopID .. '] has neither shopItems nor sellItems defined.')
+            goto continue
+        end
+
+        registerShop(shopID, {
+            name = shopData.label,
+            inventory = shopProducts,
+            groups = shopData.groups,
+            coords = shopData.coords
+        })
+
+        ::continue::
+    end
+
+    local shopCount = 0
+    for _ in pairs(ShopData) do
+        shopCount = shopCount + 1
+    end
+    lib.print.info('Paragon-Shops initialized with ' .. shopCount .. ' shop types')
+end
+
+-- Server-Event zum Neuladen der Konfiguration
+RegisterNetEvent('Paragon-Shops:Server:ReloadConfig')
+AddEventHandler('Paragon-Shops:Server:ReloadConfig', function()
+    -- require Cache leeren und neu laden
+    package.loaded['config.config'] = nil
+    package.loaded['config.locations'] = nil
+    package.loaded['config.shop_items'] = nil
+    package.loaded['config.sell_prices'] = nil
+
+    config = require 'config.config'
+    LOCATIONS = require 'config.locations'
+    PRODUCTS = require 'config.shop_items'
+    SellPriceConfig = require 'config.sell_prices'
+
+    InitializeShops()
+    if DiscordLogger then
+        DiscordLogger.LogServerEvent('Config Reloaded', 'Shop configuration reloaded by admin', { version = GetResourceMetadata(GetCurrentResourceName(), 'version', 0) })
+    end
+end)
+
 lib.callback.register("Paragon-Shops:Server:OpenShop", function(source, shop_type, location)
+        local startOpen = perfMonitor:startTimer('shop_open')
         local shop = ShopData[shop_type] and ShopData[shop_type][location]
         if not shop then
                 lib.print.error("Shop not found: " .. shop_type .. " at location " .. location)
+                local durOpenErr = perfMonitor:endTimer('shop_open', startOpen, { shop = shop_type, location = location, ok = false })
+                if DiscordLogger and durOpenErr and durOpenErr > (perfMonitor.thresholds and perfMonitor.thresholds.shop_open or 100) then
+                        DiscordLogger.LogPerformanceAlert('shop_open', durOpenErr, perfMonitor.thresholds.shop_open or 100, { shop = shop_type, location = location })
+                end
                 return nil
         end
         
@@ -324,6 +436,10 @@ lib.callback.register("Paragon-Shops:Server:OpenShop", function(source, shop_typ
                 }, "open")
         end
         
+        local durOpen = perfMonitor:endTimer('shop_open', startOpen, { shop = shop_type, location = location, ok = true })
+        if DiscordLogger and durOpen and durOpen > (perfMonitor.thresholds and perfMonitor.thresholds.shop_open or 100) then
+                DiscordLogger.LogPerformanceAlert('shop_open', durOpen, perfMonitor.thresholds.shop_open or 100, { shop = shop_type, location = location })
+        end
         return shop.inventory
 end)
 
@@ -424,6 +540,7 @@ local mapBySubfield = function(tbl, subfield)
 end
 
 lib.callback.register('Paragon-Shops:Server:GetInventoryItems', function(source, shopId)
+        local startInv = perfMonitor:startTimer('inventory_check')
         local inv = ox_inventory:GetInventory(source)
         if not inv or not inv.items then return {} end
 
@@ -461,6 +578,10 @@ lib.callback.register('Paragon-Shops:Server:GetInventoryItems', function(source,
         end
 
         table.sort(items, function(a,b) return a.name < b.name end)
+        local durInv = perfMonitor:endTimer('inventory_check', startInv, { shop = shopId, items = #items })
+        if DiscordLogger and durInv and durInv > (perfMonitor.thresholds and perfMonitor.thresholds.inventory_check or 30) then
+                DiscordLogger.LogPerformanceAlert('inventory_check', durInv, perfMonitor.thresholds.inventory_check or 30, { shop = shopId, items = #items })
+        end
         return items
 end)
 
@@ -689,7 +810,7 @@ lib.callback.register("Paragon-Shops:Server:PurchaseItems", function(source, pur
 		:: continue ::
 	end
 
-	local itemStrings = {}
+    local itemStrings = {}
 	for i = 1, #validCartItems do
 		local item = validCartItems[i]
 		local itemData = ITEMS[item.name]
@@ -837,60 +958,5 @@ AddEventHandler('onResourceStart', function(resource)
                 loadCooldowns()
         end
 
-        -- Validate items exist in ox_inventory
-        for productType, productData in pairs(PRODUCTS) do
-                for _, item in pairs(productData) do
-                        if not ITEMS[(string.find(item.name, "weapon_") and (item.name):upper()) or item.name] then
-                                lib.print.error("Invalid Item: ", item.name, "in product table:", productType, "^7")
-                                productData[item] = nil
-                        end
-                        ItemPrices[item.name] = SellPriceConfig[item.name] or math.floor(item.price * 0.5)
-                end
-        end
-
-	-- Register shops
-        for shopID, shopData in pairs(LOCATIONS) do
-                local shopProducts = {}
-
-                if shopData.shopItems then
-                        if not PRODUCTS[shopData.shopItems] then
-                                lib.print.error("A valid product ID (" .. tostring(shopData.shopItems) .. ") for [" .. shopID .. "] was not found.")
-                                goto continue
-                        end
-
-                        for item, data in pairs(PRODUCTS[shopData.shopItems]) do
-                                shopProducts[#shopProducts + 1] = {
-                                        id = tonumber(item) or #shopProducts + 1,
-                                        name = data.name,
-                                        price = config.fluctuatePrices and (math.floor(data.price * (math.random(80, 120) / 100))) or data.price or 0,
-                                        license = data.license,
-                                        metadata = data.metadata,
-                                        count = data.defaultStock,
-                                        jobs = data.jobs
-                                }
-                        end
-
-                        table.sort(shopProducts, function(a, b)
-                                return a.name < b.name
-                        end)
-                elseif not shopData.sellItems then
-                        lib.print.error("Shop [" .. shopID .. "] has neither shopItems nor sellItems defined.")
-                        goto continue
-                end
-
-                registerShop(shopID, {
-                        name = shopData.label,
-                        inventory = shopProducts,
-                        groups = shopData.groups,
-                        coords = shopData.coords
-                })
-
-		::continue::
-	end
-	
-        local shopCount = 0
-        for _ in pairs(ShopData) do
-                shopCount = shopCount + 1
-        end
-        lib.print.info("Paragon-Shops loaded successfully with " .. shopCount .. " shop types")
+        InitializeShops()
 end)
