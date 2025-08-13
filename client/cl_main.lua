@@ -363,6 +363,7 @@ local function openShop(data)
                         item.category = productData.category
                         item.imagePath = (productData.metadata and productData.metadata.imageurl) or GetItemIcon(item.name)
                         item.jobs = productData.jobs
+                        item.basePrice = productData.price or item.price
                 end
         end
 

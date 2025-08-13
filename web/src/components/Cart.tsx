@@ -26,18 +26,18 @@ function getToolTip(canAfford: boolean, overWeight: boolean) {
 }
 
 function PaymentButtons() {
-  const { CartItems, getShopItemData, cartWeight } = useStoreShop();
-  const { Money, Weight, MaxWeight } = useStoreSelf();
+	const { CartItems, getShopItemData, cartWeight } = useStoreShop();
+	const { Money, Weight, MaxWeight } = useStoreSelf();
 
 	const { ShopItems, CurrentShop, clearCart, setShopItems } = useStoreShop();
-        const [awaitingPaymentCash, setAwaitingPaymentCash] = useState(false);
-        const [awaitingPaymentCard, setAwaitingPaymentCard] = useState(false);
-        const [awaitingPaymentSociety, setAwaitingPaymentSociety] = useState(false);
+	const [awaiting, setAwaiting] = useState(false);
+	const [method, setMethod] = useState<'cash' | 'card' | 'society'>('cash');
 
-        const canAffordCash = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) <= Money.Cash;
-        const canAffordCard = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) <= Money.Bank;
-        const canAffordSociety = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) <= Money.Society;
-        const overWeight = Weight + cartWeight > MaxWeight;
+	const total = CartItems?.reduce((acc, item) => acc + getShopItemData(item.id).price * item.quantity, 0) || 0;
+	const canAffordCash = total <= Money.Cash;
+	const canAffordCard = total <= Money.Bank;
+	const canAffordSociety = total <= Money.Society;
+	const overWeight = Weight + cartWeight > MaxWeight;
 
 	function finishPurchase() {
 		const updatedShopItems = ShopItems.map((shopItem) => {
@@ -55,137 +55,64 @@ function PaymentButtons() {
 		clearCart();
 	}
 
-	return (
-                <div className="flex w-full flex-col justify-between">
-                        {(awaitingPaymentCash || awaitingPaymentCard || awaitingPaymentSociety) && <div className="container" />}
-			<TooltipProvider delayDuration={0} disableHoverableContent>
-                <div className="flex w-full">
-                    <Tooltip>
-						<TooltipPortal>
-							{CartItems && CartItems.length > 0 && (
-								<TooltipContent
-									side="top"
-									sideOffset={5}
-									className={cn(
-										"rounded-md",
-										(canAffordCash && !overWeight && "bg-green-700/20 text-green-300") || "bg-red-700/20 text-red-300",
-									)}
-								>
-									{getToolTip(canAffordCash, overWeight) || "Bezahlen mit Bargeld"}
-								</TooltipContent>
-							)}
-						</TooltipPortal>
-						<TooltipTrigger asChild>
-							<Button
-								className="grow bg-green-700/20 text-green-300 hover:bg-green-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:hover:bg-green-700/20"
-								variant="secondary"
-                                                                data-disabled={!CartItems || CartItems.length == 0 || !canAffordCash || awaitingPaymentCard || awaitingPaymentSociety || overWeight}
-								style={{ borderBottomRightRadius: 0, borderTopRightRadius: 0 }}
-                                                                onClick={() => {
-                                                                        if (!CartItems || CartItems.length == 0 || !canAffordCash || awaitingPaymentCard || awaitingPaymentSociety || overWeight) return;
-
-									setAwaitingPaymentCash(true);
-									fetchNui("purchaseItems", { items: CartItems, shop: CurrentShop, currency: "cash" }, true).then((res) => {
-										setAwaitingPaymentCash(false);
-										if (res) {
-											finishPurchase();
-											clearCart();
-										}
-									});
-								}}
-							>
-								{awaitingPaymentCash ? <Loader /> : <FontAwesomeIcon size="lg" icon={faMoneyBill1Wave} />}
-							</Button>
-						</TooltipTrigger>
-                    </Tooltip>
-                    <Tooltip>
-						<TooltipPortal>
-							{CartItems && CartItems.length > 0 && (
-								<TooltipContent
-									side="top"
-									sideOffset={5}
-									className={cn(
-										"rounded-md",
-										(canAffordCard && !overWeight && "bg-blue-700/20 text-blue-300") || "bg-red-700/20 text-red-300",
-									)}
-								>
-									{getToolTip(canAffordCard, overWeight) || "Bezahlen mit Karte"}
-								</TooltipContent>
-							)}
-						</TooltipPortal>
-						<TooltipTrigger asChild>
-							<Button
-								className="grow bg-blue-700/20 text-blue-300 hover:bg-blue-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:hover:bg-blue-700/20"
-								variant="secondary"
-								data-disabled={!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || awaitingPaymentSociety || overWeight}
-								style={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0 }}
-                                                                onClick={() => {
-                                                                        if (!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || awaitingPaymentSociety || overWeight) return;
-
-									setAwaitingPaymentCard(true);
-									fetchNui("purchaseItems", { items: CartItems, shop: CurrentShop, currency: "card" }, true).then((res) => {
-										setAwaitingPaymentCard(false);
-										if (res) {
-											finishPurchase();
-											clearCart();
-										}
-									});
-								}}
-							>
-								{awaitingPaymentCash ? <Loader /> : <FontAwesomeIcon size="lg" icon={faCreditCard} />}
-							</Button>
-						</TooltipTrigger>
-						</Tooltip>
-                    {Money.Society > 0 && (
-                    <Tooltip>
-                                                <TooltipPortal>
-                                                        {CartItems && CartItems.length > 0 && (
-                                                                <TooltipContent
-                                                                        side="top"
-                                                                        sideOffset={5}
-                                                                        className={cn(
-                                                                                "rounded-md",
-                                        (canAffordSociety && !overWeight && "bg-orange-700/20 text-orange-300") || "bg-red-700/20 text-red-300",
-                                                                        )}
-                                                                >
-                                                                        {getToolTip(canAffordSociety, overWeight) || "Bezahlen mit Society"}
-                                                                </TooltipContent>
-                                                        )}
-                                                </TooltipPortal>
-                                                <TooltipTrigger asChild>
-                            <Button
-                                                                className="grow bg-orange-700/20 text-orange-300 hover:bg-orange-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:hover:bg-orange-700/20"
-                                                                variant="secondary"
-                                                                data-disabled={!CartItems || CartItems.length == 0 || !canAffordSociety || awaitingPaymentCash || awaitingPaymentCard || overWeight}
-                                                                style={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0 }}
-                                                                onClick={() => {
-                                                                        if (!CartItems || CartItems.length == 0 || !canAffordSociety || awaitingPaymentCash || awaitingPaymentCard || overWeight) return;
-
-                                                                        setAwaitingPaymentSociety(true);
-                                                                        fetchNui("purchaseItems", { items: CartItems, shop: CurrentShop, currency: "society" }, true).then((res) => {
-                                                                                setAwaitingPaymentSociety(false);
-                                                                                if (res) {
-                                                                                        finishPurchase();
-                                                                                        clearCart();
-                                                                                }
-                                                                        });
-                                                                }}
-                                                        >
-                                                                {awaitingPaymentSociety ? <Loader /> : <FontAwesomeIcon size="lg" icon={faUsers} />}
-                            </Button>
-									</TooltipTrigger>
-							</Tooltip>
-                    )}
-                                </div>
+		return (
+			<div className="flex w-full flex-col justify-between">
+				{awaiting && <div className="container" />}
+				<div className="flex w-full gap-1">
+					<Button
+						className={`grow ${method === 'cash' ? 'ring-1 ring-green-400' : ''} bg-green-700/20 text-green-300 hover:bg-green-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
+						variant="secondary"
+						data-disabled={!CartItems || CartItems.length === 0 || !canAffordCash || awaiting || overWeight}
+						onClick={() => setMethod('cash')}
+					>
+						<FontAwesomeIcon size="lg" icon={faMoneyBill1Wave} />
+					</Button>
+					<Button
+						className={`grow ${method === 'card' ? 'ring-1 ring-blue-400' : ''} bg-blue-700/20 text-blue-300 hover:bg-blue-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
+						variant="secondary"
+						data-disabled={!CartItems || CartItems.length === 0 || !canAffordCard || awaiting || overWeight}
+						onClick={() => setMethod('card')}
+					>
+						<FontAwesomeIcon size="lg" icon={faCreditCard} />
+					</Button>
+					{Money.Society > 0 && (
+						<Button
+							className={`grow ${method === 'society' ? 'ring-1 ring-orange-400' : ''} bg-orange-700/20 text-orange-300 hover:bg-orange-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
+							variant="secondary"
+							data-disabled={!CartItems || CartItems.length === 0 || !canAffordSociety || awaiting || overWeight}
+							onClick={() => setMethod('society')}
+						>
+							<FontAwesomeIcon size="lg" icon={faUsers} />
+						</Button>
+					)}
+				</div>
+				<div className="mt-2">
+					<Button
+						className="w-full bg-emerald-700/30 text-emerald-300 hover:bg-emerald-800/30 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50"
+						variant="secondary"
+						data-disabled={!CartItems || CartItems.length === 0 || awaiting || overWeight || (method === 'cash' && !canAffordCash) || (method === 'card' && !canAffordCard) || (method === 'society' && !canAffordSociety)}
+						onClick={async () => {
+							if (!CartItems || CartItems.length === 0 || awaiting) return;
+							setAwaiting(true);
+							const res = await fetchNui('purchaseItems', { items: CartItems, shop: CurrentShop, currency: method }, true);
+							setAwaiting(false);
+							if (res) {
+								finishPurchase();
+								clearCart();
+							}
+						}}
+					>
+						{awaiting ? <Loader /> : 'Jetzt bezahlen'}
+					</Button>
+				</div>
 				<p className="mt-1 flex items-center justify-center gap-1 rounded-sm bg-indigo-800/20 px-2 py-1 text-lg font-medium text-indigo-400">
 					<FontAwesomeIcon size="xs" icon={faWeightHanging} />
-					{formatWeight(Weight) + "kg"}
-					{cartWeight > 0.0 && <span className="font-bold">{" + " + formatWeight(cartWeight) + "kg"}</span>}
-					{" / " + formatWeight(MaxWeight) + "kg"}
+					{formatWeight(Weight) + 'kg'}
+					{cartWeight > 0.0 && <span className="font-bold">{' + ' + formatWeight(cartWeight) + 'kg'}</span>}
+					{' / ' + formatWeight(MaxWeight) + 'kg'}
 				</p>
-			</TooltipProvider>
-		</div>
-	);
+			</div>
+		);
 }
 
 export default function Cart() {

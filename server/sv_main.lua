@@ -362,6 +362,7 @@ local function InitializeShops()
                     id = tonumber(item) or #shopProducts + 1,
                     name = data.name,
                     price = config.fluctuatePrices and (math.floor(data.price * (math.random(80, 120) / 100))) or data.price or 0,
+                    basePrice = data.price or 0,
                     license = data.license,
                     metadata = data.metadata,
                     count = data.defaultStock,

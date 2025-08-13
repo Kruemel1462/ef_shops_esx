@@ -11,6 +11,7 @@ export type ShopItem = {
 	name: string;
 	label: string;
 	price: number;
+	basePrice?: number;
 	weight: number;
 	count: number;
 	imagePath: string;

@@ -39,7 +39,14 @@ export default function ItemCard({ item }: { item: ShopItem }) {
                                 }}
                         >
                                 <div className="mx-auto flex w-full items-center justify-between gap-2">
-                                        <p className="text-lg font-semibold">{'$'}{item.price}</p>
+                                        <div className="text-right">
+                                                <p className="text-lg font-semibold">{'$'}{item.price}</p>
+                                                {typeof item.basePrice === 'number' && item.basePrice > 0 && item.basePrice !== item.price && (
+                                                        <p className={`text-xs font-semibold ${item.price > item.basePrice ? 'text-red-400' : 'text-green-400'}`}>
+                                                                {item.price > item.basePrice ? '▲' : '▼'} {Math.round(((item.price - item.basePrice) / item.basePrice) * 100)}%
+                                                        </p>
+                                                )}
+                                        </div>
                                         <p className="text-lg font-semibold">{item.count}x</p>
                                 </div>
                                 <div className="m-auto h-[80%]">
@@ -80,7 +87,14 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 					}}
 				>
 					<div className="mx-auto flex w-full items-center justify-between gap-2">
-						<p className="text-lg font-semibold">{item.price == 0 ? "GRATIS" : "$" + item.price}</p>
+                        <div className="text-right">
+                                <p className="text-lg font-semibold">{item.price == 0 ? "GRATIS" : "$" + item.price}</p>
+                                {typeof item.basePrice === 'number' && item.basePrice > 0 && item.basePrice !== item.price && (
+                                        <p className={`text-xs font-semibold ${item.price > item.basePrice ? 'text-red-400' : 'text-green-400'}`}>
+                                                {item.price > item.basePrice ? '▲' : '▼'} {Math.round(((item.price - item.basePrice) / item.basePrice) * 100)}%
+                                        </p>
+                                )}
+                        </div>
 						{item.count !== undefined && <p className="text-lg font-semibold">{item.count}x</p>}
 					</div>
 					<div className="m-auto h-[80%]">
