@@ -107,7 +107,7 @@ export default function SellCart() {
 
 	const sellValue = SellCartItems?.reduce((acc, item) => acc + (getInventoryItemData(item.id)?.price || 0) * item.quantity, 0) || 0;
 
-	return (
+  return (
 		<div className="flex h-full w-[25%] min-w-[25%] flex-col justify-between gap-1">
 			<div className="flex justify-between gap-1">
 				<div className="mx-2 flex items-center gap-2 leading-none">
@@ -196,7 +196,7 @@ export default function SellCart() {
 					</ScrollArea>
 				)}
 			</div>
-			<SellButton />
+      <SellButton />
 		</div>
 	);
 }

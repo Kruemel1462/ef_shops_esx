@@ -42,10 +42,12 @@ function PlayerData() {
                                 <FontAwesomeIcon size="xl" icon={faCreditCard} />
                                 {"$" + formatMoney(Money.Bank)}
                         </p>
-                        <p className="flex items-center gap-2 rounded-md bg-orange-600/20 px-5 py-1 text-lg font-bold leading-none text-orange-400">
-                                <FontAwesomeIcon size="xl" icon={faUsers} />
-                                {"$" + formatMoney(Money.Society)}
-                        </p>
+                        {Money.Society > 0 && (
+                                <p className="flex items-center gap-2 rounded-md bg-orange-600/20 px-5 py-1 text-lg font-bold leading-none text-orange-400">
+                                        <FontAwesomeIcon size="xl" icon={faUsers} />
+                                        {"$" + formatMoney(Money.Society)}
+                                </p>
+                        )}
                 </div>
         );
 }

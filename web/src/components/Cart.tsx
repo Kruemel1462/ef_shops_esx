@@ -26,8 +26,8 @@ function getToolTip(canAfford: boolean, overWeight: boolean) {
 }
 
 function PaymentButtons() {
-	const { CartItems, getShopItemData, cartWeight } = useStoreShop();
-	const { Money, Weight, MaxWeight } = useStoreSelf();
+  const { CartItems, getShopItemData, cartWeight } = useStoreShop();
+  const { Money, Weight, MaxWeight } = useStoreSelf();
 
 	const { ShopItems, CurrentShop, clearCart, setShopItems } = useStoreShop();
         const [awaitingPaymentCash, setAwaitingPaymentCash] = useState(false);
@@ -59,8 +59,8 @@ function PaymentButtons() {
                 <div className="flex w-full flex-col justify-between">
                         {(awaitingPaymentCash || awaitingPaymentCard || awaitingPaymentSociety) && <div className="container" />}
 			<TooltipProvider delayDuration={0} disableHoverableContent>
-				<div className="flex w-full">
-                                        <Tooltip>
+                <div className="flex w-full">
+                    <Tooltip>
 						<TooltipPortal>
 							{CartItems && CartItems.length > 0 && (
 								<TooltipContent
@@ -97,8 +97,8 @@ function PaymentButtons() {
 								{awaitingPaymentCash ? <Loader /> : <FontAwesomeIcon size="lg" icon={faMoneyBill1Wave} />}
 							</Button>
 						</TooltipTrigger>
-					</Tooltip>
-					<Tooltip>
+                    </Tooltip>
+                    <Tooltip>
 						<TooltipPortal>
 							{CartItems && CartItems.length > 0 && (
 								<TooltipContent
@@ -117,7 +117,7 @@ function PaymentButtons() {
 							<Button
 								className="grow bg-blue-700/20 text-blue-300 hover:bg-blue-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:hover:bg-blue-700/20"
 								variant="secondary"
-                                                                data-disabled={!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || awaitingPaymentSociety || overWeight}
+								data-disabled={!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || awaitingPaymentSociety || overWeight}
 								style={{ borderBottomLeftRadius: 0, borderTopLeftRadius: 0 }}
                                                                 onClick={() => {
                                                                         if (!CartItems || CartItems.length == 0 || !canAffordCard || awaitingPaymentCash || awaitingPaymentSociety || overWeight) return;
@@ -135,8 +135,9 @@ function PaymentButtons() {
 								{awaitingPaymentCash ? <Loader /> : <FontAwesomeIcon size="lg" icon={faCreditCard} />}
 							</Button>
 						</TooltipTrigger>
-                                        </Tooltip>
-                                        <Tooltip>
+						</Tooltip>
+                    {Money.Society > 0 && (
+                    <Tooltip>
                                                 <TooltipPortal>
                                                         {CartItems && CartItems.length > 0 && (
                                                                 <TooltipContent
@@ -144,7 +145,7 @@ function PaymentButtons() {
                                                                         sideOffset={5}
                                                                         className={cn(
                                                                                 "rounded-md",
-                                                                                (canAffordSociety && !overWeight && "bg-orange-700/20 text-orange-300") || "bg-red-700/20 text-red-300",
+                                        (canAffordSociety && !overWeight && "bg-orange-700/20 text-orange-300") || "bg-red-700/20 text-red-300",
                                                                         )}
                                                                 >
                                                                         {getToolTip(canAffordSociety, overWeight) || "Bezahlen mit Society"}
@@ -152,7 +153,7 @@ function PaymentButtons() {
                                                         )}
                                                 </TooltipPortal>
                                                 <TooltipTrigger asChild>
-                                                        <Button
+                            <Button
                                                                 className="grow bg-orange-700/20 text-orange-300 hover:bg-orange-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:hover:bg-orange-700/20"
                                                                 variant="secondary"
                                                                 data-disabled={!CartItems || CartItems.length == 0 || !canAffordSociety || awaitingPaymentCash || awaitingPaymentCard || overWeight}
@@ -171,9 +172,10 @@ function PaymentButtons() {
                                                                 }}
                                                         >
                                                                 {awaitingPaymentSociety ? <Loader /> : <FontAwesomeIcon size="lg" icon={faUsers} />}
-                                                        </Button>
-                                                </TooltipTrigger>
-                                        </Tooltip>
+                            </Button>
+									</TooltipTrigger>
+							</Tooltip>
+                    )}
                                 </div>
 				<p className="mt-1 flex items-center justify-center gap-1 rounded-sm bg-indigo-800/20 px-2 py-1 text-lg font-medium text-indigo-400">
 					<FontAwesomeIcon size="xs" icon={faWeightHanging} />

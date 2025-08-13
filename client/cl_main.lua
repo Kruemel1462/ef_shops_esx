@@ -32,6 +32,193 @@ local scenarios = {
         "PROP_HUMAN_STAND_IMPATIENT",
 }
 
+-- Prüfen, ob Spieler einen Shop überhaupt sehen darf (Job-Gating)
+local function ShouldSeeShop(storeData)
+    if not storeData or not storeData.jobs then
+        return true
+    end
+    if not ESX or not ESX.PlayerData or not ESX.PlayerData.job then
+        return false
+    end
+    local playerJob = ESX.PlayerData.job
+    local required = storeData.jobs[playerJob.name]
+    if not required then
+        return false
+    end
+    if type(required) == 'number' then
+        return playerJob.grade >= required
+    end
+    -- Falls jobs als Map ohne Grade definiert wurden, reicht Vorhandensein
+    return true
+end
+
+-- Vorwärtsdeklaration, damit in früher kompilierten Closures verfügbar
+local ShowShopText
+local HideShopText
+
+local function DestroyAllShopEntities()
+    -- Entferne Vendor Entities
+    for _, entity in pairs(Vendors) do
+        if DoesEntityExist(entity) then
+            if IsModelAPed(GetEntityModel(entity)) then
+                DeletePed(entity)
+            else
+                DeleteEntity(entity)
+            end
+        end
+    end
+    Vendors = {}
+    VendorScenarios = {}
+
+    -- Entferne Points
+    for _, point in ipairs(Points) do
+        if point and point.remove then
+            point:remove()
+        end
+    end
+    Points = {}
+    NearbyShops = {}
+    lib.hideTextUI()
+
+    -- Entferne Blips
+    for _, blip in ipairs(Blips) do
+        if blip and DoesBlipExist(blip) then
+            RemoveBlip(blip)
+        end
+    end
+    Blips = {}
+end
+
+local function BuildAllShops()
+    DestroyAllShopEntities()
+    for shopID, storeData in pairs(LOCATIONS) do
+        if not storeData.coords then goto continue end
+        if not ShouldSeeShop(storeData) then goto continue end
+
+        for locationIndex, locationCoords in pairs(storeData.coords) do
+            -- Blip erstellen
+            if storeData.blip and not storeData.blip.disabled then
+                local StoreBlip = AddBlipForCoord(locationCoords.x, locationCoords.y, locationCoords.z)
+                SetBlipSprite(StoreBlip, storeData.blip.sprite)
+                SetBlipScale(StoreBlip, storeData.blip.scale or 0.7)
+                SetBlipDisplay(StoreBlip, 6)
+                SetBlipColour(StoreBlip, storeData.blip.color)
+                SetBlipAsShortRange(StoreBlip, true)
+
+                local name = storeData.label
+
+                AddTextEntry(name, name)
+                BeginTextCommandSetBlipName(name)
+                EndTextCommandSetBlipName(StoreBlip)
+
+                Blips[#Blips + 1] = StoreBlip
+            end
+
+            local model = type(storeData.model) == "table" and storeData.model[math.random(1, #storeData.model)] or storeData.model
+
+            if model then -- Create entity
+                local createEntity
+                local deleteEntity
+                if IsModelAPed(model) then
+                    function createEntity()
+                        Vendors[shopID .. locationIndex] = CreatePed(0, model, locationCoords.x, locationCoords.y, locationCoords.z - 1.0, locationCoords.w, false, false)
+                        SetEntityInvincible(Vendors[shopID .. locationIndex], true)
+                        local scen = storeData.scenario or scenarios[math.random(1, #scenarios)]
+                        VendorScenarios[shopID .. locationIndex] = scen
+                        TaskStartScenarioInPlace(Vendors[shopID .. locationIndex], scen, -1, true)
+                        SetBlockingOfNonTemporaryEvents(Vendors[shopID .. locationIndex], true)
+                        SetEntityNoCollisionEntity(Vendors[shopID .. locationIndex], cache.ped, false)
+                        FreezeEntityPosition(Vendors[shopID .. locationIndex], true)
+                    end
+
+                    function deleteEntity()
+                        if DoesEntityExist(Vendors[shopID .. locationIndex]) then
+                            DeletePed(Vendors[shopID .. locationIndex])
+                        end
+                        Vendors[shopID .. locationIndex] = nil
+                        VendorScenarios[shopID .. locationIndex] = nil
+                    end
+                else
+                    function createEntity()
+                        Vendors[shopID .. locationIndex] = CreateObject(model, locationCoords.x, locationCoords.y, locationCoords.z - 1.03, false, false, false)
+                        SetEntityHeading(Vendors[shopID .. locationIndex], locationCoords.w)
+                        FreezeEntityPosition(Vendors[shopID .. locationIndex], true)
+                    end
+
+                    function deleteEntity()
+                        if DoesEntityExist(Vendors[shopID .. locationIndex]) then
+                            DeleteEntity(Vendors[shopID .. locationIndex])
+                        end
+                        Vendors[shopID .. locationIndex] = nil
+                        VendorScenarios[shopID .. locationIndex] = nil
+                    end
+                end
+
+                -- Point System für Nähe-Erkennung (Spawn/Despawn Vendor)
+                local point = lib.points.new(locationCoords, 25)
+                function point:onEnter()
+                    if not Vendors[shopID .. locationIndex] or (Vendors[shopID .. locationIndex] and not DoesEntityExist(Vendors[shopID .. locationIndex])) then
+                        while not HasModelLoaded(model) do
+                            pcall(function()
+                                lib.requestModel(model)
+                            end)
+                        end
+                        createEntity()
+                    end
+                end
+
+                function point:onExit()
+                    deleteEntity()
+                end
+
+                -- Nähe-Punkt für E-Taste Interaktion
+                local radius = (storeData.target and storeData.target.radius) or 2.0
+                local interactionPoint = lib.points.new(locationCoords, radius)
+                function interactionPoint:onEnter()
+                    NearbyShops[shopID .. locationIndex] = {
+                        shopID = shopID,
+                        locationIndex = locationIndex,
+                        storeData = storeData
+                    }
+                    ShowShopText(storeData)
+                end
+
+                function interactionPoint:onExit()
+                    NearbyShops[shopID .. locationIndex] = nil
+                    if next(NearbyShops) == nil then -- Keine Shops in der Nähe
+                        HideShopText()
+                    end
+                end
+
+                Points[#Points + 1] = point
+                Points[#Points + 1] = interactionPoint
+            else
+                -- Punkt ohne Entity für E-Taste Interaktion
+                local radius = (storeData.target and storeData.target.radius) or 2.0
+                local interactionPoint = lib.points.new(locationCoords, radius)
+                function interactionPoint:onEnter()
+                    NearbyShops[shopID .. locationIndex] = {
+                        shopID = shopID,
+                        locationIndex = locationIndex,
+                        storeData = storeData
+                    }
+                    ShowShopText(storeData)
+                end
+
+                function interactionPoint:onExit()
+                    NearbyShops[shopID .. locationIndex] = nil
+                    if next(NearbyShops) == nil then -- Keine Shops in der Nähe
+                        HideShopText()
+                    end
+                end
+
+                Points[#Points + 1] = interactionPoint
+            end
+        end
+        :: continue ::
+    end
+end
+
 local function playFearAnim(ped)
     if not ped or ped == 0 then return end
     lib.requestAnimDict('amb@code_human_cower@female@react_cowering')
@@ -228,7 +415,7 @@ local function UpdateShopData()
 end
 
 -- Neue Funktion um Text-UI anzuzeigen
-local function ShowShopText(shopData)
+ShowShopText = function(shopData)
     local label = (shopData.target and shopData.target.label) or "Shop öffnen"
     local icon = (shopData.target and shopData.target.icon) or "fas fa-cash-register"
     lib.showTextUI('[E] - ' .. label, {
@@ -238,7 +425,7 @@ local function ShowShopText(shopData)
 end
 
 -- Neue Funktion um Text-UI zu verstecken
-local function HideShopText()
+HideShopText = function()
     lib.hideTextUI()
 end
 
@@ -381,132 +568,11 @@ end)
 
 -- Hauptthread für Shop-Erstellung (ohne ox_target)
 CreateThread(function()
-	for shopID, storeData in pairs(LOCATIONS) do
-		if not storeData.coords then goto continue end
-
-		for locationIndex, locationCoords in pairs(storeData.coords) do
-			-- Blip erstellen
-			if storeData.blip and not storeData.blip.disabled then
-				local StoreBlip = AddBlipForCoord(locationCoords.x, locationCoords.y, locationCoords.z)
-				SetBlipSprite(StoreBlip, storeData.blip.sprite)
-				SetBlipScale(StoreBlip, storeData.blip.scale or 0.7)
-				SetBlipDisplay(StoreBlip, 6)
-				SetBlipColour(StoreBlip, storeData.blip.color)
-				SetBlipAsShortRange(StoreBlip, true)
-
-				local name = storeData.label
-
-				AddTextEntry(name, name)
-				BeginTextCommandSetBlipName(name)
-				EndTextCommandSetBlipName(StoreBlip)
-
-				Blips[#Blips + 1] = StoreBlip
-			end
-
-			local model = type(storeData.model) == "table" and storeData.model[math.random(1, #storeData.model)] or storeData.model
-
-			if model then -- Create entity
-				local createEntity
-				local deleteEntity
-                                if IsModelAPed(model) then
-                                        function createEntity()
-                                                Vendors[shopID .. locationIndex] = CreatePed(0, model, locationCoords.x, locationCoords.y, locationCoords.z - 1.0, locationCoords.w, false, false)
-                                                SetEntityInvincible(Vendors[shopID .. locationIndex], true)
-                                                local scen = storeData.scenario or scenarios[math.random(1, #scenarios)]
-                                                VendorScenarios[shopID .. locationIndex] = scen
-                                                TaskStartScenarioInPlace(Vendors[shopID .. locationIndex], scen, -1, true)
-                                                SetBlockingOfNonTemporaryEvents(Vendors[shopID .. locationIndex], true)
-                                                SetEntityNoCollisionEntity(Vendors[shopID .. locationIndex], cache.ped, false)
-                                                FreezeEntityPosition(Vendors[shopID .. locationIndex], true)
-                                        end
-
-                                        function deleteEntity()
-                                                if DoesEntityExist(Vendors[shopID .. locationIndex]) then
-                                                        DeletePed(Vendors[shopID .. locationIndex])
-                                                end
-                                                Vendors[shopID .. locationIndex] = nil
-                                                VendorScenarios[shopID .. locationIndex] = nil
-                                        end
-				else
-					function createEntity()
-						Vendors[shopID .. locationIndex] = CreateObject(model, locationCoords.x, locationCoords.y, locationCoords.z - 1.03, false, false, false)
-						SetEntityHeading(Vendors[shopID .. locationIndex], locationCoords.w)
-						FreezeEntityPosition(Vendors[shopID .. locationIndex], true)
-					end
-
-                                        function deleteEntity()
-                                                if DoesEntityExist(Vendors[shopID .. locationIndex]) then
-                                                        DeleteEntity(Vendors[shopID .. locationIndex])
-                                                end
-                                                Vendors[shopID .. locationIndex] = nil
-                                                VendorScenarios[shopID .. locationIndex] = nil
-                                        end
-                               end
-
-				-- Point System für Nähe-Erkennung
-				local point = lib.points.new(locationCoords, 25)
-				function point:onEnter()
-					if not Vendors[shopID .. locationIndex] or (Vendors[shopID .. locationIndex] and not DoesEntityExist(Vendors[shopID .. locationIndex])) then
-						while not HasModelLoaded(model) do
-							pcall(function()
-								lib.requestModel(model)
-							end)
-						end
-						createEntity()
-					end
-				end
-
-				function point:onExit()
-					deleteEntity()
-				end
-
-				-- Nähe-Punkt für E-Taste Interaktion
-				local radius = (storeData.target and storeData.target.radius) or 2.0
-				local interactionPoint = lib.points.new(locationCoords, radius)
-				function interactionPoint:onEnter()
-					NearbyShops[shopID .. locationIndex] = {
-						shopID = shopID,
-						locationIndex = locationIndex,
-						storeData = storeData
-					}
-					ShowShopText(storeData)
-				end
-
-				function interactionPoint:onExit()
-					NearbyShops[shopID .. locationIndex] = nil
-					if next(NearbyShops) == nil then -- Keine Shops in der Nähe
-						HideShopText()
-					end
-				end
-
-				Points[#Points + 1] = point
-				Points[#Points + 1] = interactionPoint
-			else
-				-- Punkt ohne Entity für E-Taste Interaktion
-				local radius = (storeData.target and storeData.target.radius) or 2.0
-				local interactionPoint = lib.points.new(locationCoords, radius)
-				function interactionPoint:onEnter()
-					NearbyShops[shopID .. locationIndex] = {
-						shopID = shopID,
-						locationIndex = locationIndex,
-						storeData = storeData
-					}
-					ShowShopText(storeData)
-				end
-
-				function interactionPoint:onExit()
-					NearbyShops[shopID .. locationIndex] = nil
-					if next(NearbyShops) == nil then -- Keine Shops in der Nähe
-						HideShopText()
-					end
-				end
-
-				Points[#Points + 1] = interactionPoint
-			end
-		end
-
-		:: continue ::
-	end
+    -- Warte bis ESX PlayerData vorhanden ist, um korrektes Job-Gating zu gewährleisten
+    while not ESX or not ESX.PlayerData or not ESX.PlayerData.job do
+        Wait(100)
+    end
+    BuildAllShops()
 end)
 
 -- Thread für E-Taste Erkennung - Performance optimiert
@@ -548,12 +614,14 @@ AddEventHandler('esx:playerLoaded', function(xPlayer)
     ESX.PlayerData = xPlayer
     UpdateShopData()
     robberyCooldown = 0
+    BuildAllShops()
 end)
 
 RegisterNetEvent('esx:setJob')
 AddEventHandler('esx:setJob', function(job)
     ESX.PlayerData.job = job
     UpdateShopData()
+    BuildAllShops()
 end)
 
 -- Event für Lizenz-Updates (falls das System esx_license verwendet)
