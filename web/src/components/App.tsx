@@ -9,8 +9,8 @@ export default function App() {
 
 	return (
 		<VisibilityProvider>
-			<div className="flex h-screen w-screen items-center justify-center">
-				<div className="h-[82vh] w-3/4 bg-background/[0.97] p-4 transition-all">
+			<div className="flex min-h-screen w-screen items-center justify-center p-4 bg-gradient-to-br from-background/95 via-background/90 to-background/95">
+				<div className="h-[90vh] w-full max-w-7xl bg-gradient-to-br from-card/40 via-card/30 to-card/20 backdrop-blur-xl border border-border/30 rounded-2xl shadow-2xl shadow-primary/5 p-6 transition-all duration-500 hover:shadow-primary/10">
 					<ShopInterface />
 				</div>
 			</div>
