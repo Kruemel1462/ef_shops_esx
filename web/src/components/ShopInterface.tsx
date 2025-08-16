@@ -117,7 +117,7 @@ export default function ShopInterface() {
                                                         {SellingMode ? "🛒 Kaufen" : "💰 Verkaufen"}
                                                 </Button>
                                         )}
-                                        {canBuy && (
+                                        {canBuy && CurrentShop?.canRob !== false && (
                                                 <Button
                                                         className="bg-red-700/30 text-red-200 hover:bg-red-600/40 backdrop-blur-sm gpu-accelerated smooth-transition"
                                                         variant="secondary"

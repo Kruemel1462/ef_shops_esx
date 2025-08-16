@@ -65,6 +65,12 @@ return {
                 maxDistance = 20.0,
                 abortControl = 47,
                 dispatchChance = 0.5, -- 50% chance police gets a dispatch on robbery start
-                progressLabel = 'Raub läuft...'
+                progressLabel = 'Raub läuft...',
+                -- Shops bei denen Ausrauben deaktiviert ist
+                disabledShops = {
+                        "buyonly", -- buyonly Shop kann nicht ausgeraubt werden
+                        "buyonly_test", -- buyonly_test Shop kann nicht ausgeraubt werden
+                        -- "sellonly", -- Beispiel: sellonly Shop kann nicht ausgeraubt werden
+                }
         }
 }

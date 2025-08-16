@@ -376,12 +376,24 @@ local function openShop(data)
         local canSell = shopData.sellItems ~= nil and shopData.sellItems ~= false
         
         -- Erst die Shop-Daten senden, dann die Self-Daten und Shop-Items
+        -- Prüfe ob Robbery für diesen Shop deaktiviert ist
+        local canRob = true
+        if config.robbery and config.robbery.disabledShops then
+                for _, disabledShop in pairs(config.robbery.disabledShops) do
+                        if disabledShop == data.type then
+                                canRob = false
+                                break
+                        end
+                end
+        end
+
         local shopInfo = {
             id = data.type,
             location = data.location,
             label = LOCATIONS[data.type].label,
             canBuy = canBuy,
-            canSell = canSell
+            canSell = canSell,
+            canRob = canRob
         }
         
         SendReactMessage("setCurrentShop", shopInfo)

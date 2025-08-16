@@ -4,6 +4,7 @@ export type Shop = {
         label: string;
         canBuy: boolean;
         canSell: boolean;
+        canRob?: boolean;
 };
 
 export type ShopItem = {
