@@ -134,11 +134,24 @@ export default function Cart() {
 				</div>
 
 				{CartItems && CartItems.length > 0 && (
-					<div className="mx-2 bg-gradient-to-r from-green-600/30 to-emerald-600/30 backdrop-blur-sm px-3 py-2 rounded-lg">
-						<div className="text-sm text-green-300 font-medium">Gesamt:</div>
-						<div className="text-lg font-bold text-green-100">
-							{cartPrice == 0 ? "💰 Kostenlos" : "$" + formatMoney(cartPrice)}
+					<div className="mx-2 flex flex-col gap-2">
+						<div className="bg-gradient-to-r from-green-600/30 to-emerald-600/30 backdrop-blur-sm px-3 py-2 rounded-lg">
+							<div className="text-sm text-green-300 font-medium">Gesamt:</div>
+							<div className="text-lg font-bold text-green-100">
+								{cartPrice == 0 ? "💰 Kostenlos" : "$" + formatMoney(cartPrice)}
+							</div>
 						</div>
+						<Button
+							size="sm"
+							variant="outline"
+							className="w-full text-xs bg-red-600/20 text-red-300 hover:bg-red-700/30 gpu-accelerated"
+							onClick={() => {
+								const { clearCart } = useStoreShop.getState();
+								clearCart();
+							}}
+						>
+							🗑️ Warenkorb leeren
+						</Button>
 					</div>
 				)}
 			</div>

@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { formatMoney, isEnvBrowser } from "../utils/misc";
 import { Skeleton } from "./ui/skeleton";
 import { Button } from "./ui/button";
+import { useEffect } from "react";
 
 function ShopTitle() {
 	const { CurrentShop } = useStoreShop();
@@ -60,12 +61,42 @@ function PlayerData() {
 }
 
 export default function ShopInterface() {
-        const { SellingMode, setSellingMode, CurrentShop } = useStoreShop();
+        const { SellingMode, setSellingMode, CurrentShop, clearCart } = useStoreShop();
         
         // Defensive Programmierung - sichere Standardwerte
         const canBuy = CurrentShop?.canBuy === true;
         const canSell = CurrentShop?.canSell === true;
         const showToggle = CurrentShop && canBuy && canSell;
+
+        // Keyboard Shortcuts für bessere UX (vereinfacht)
+        useEffect(() => {
+                const handleKeyPress = (e: KeyboardEvent) => {
+                        // Nur wenn keine Input-Felder fokussiert sind
+                        if (e.target && (e.target as HTMLElement).tagName === 'INPUT') return;
+                        
+                        switch (e.key.toLowerCase()) {
+                                case 'c':
+                                        // C = Clear Cart
+                                        e.preventDefault();
+                                        clearCart();
+                                        break;
+                                case 't':
+                                        // T = Toggle Selling Mode
+                                        e.preventDefault();
+                                        if (showToggle) {
+                                                if (!SellingMode) {
+                                                        fetchNui("getInventory", { shop: CurrentShop?.id });
+                                                }
+                                                setSellingMode(!SellingMode);
+                                        }
+                                        break;
+                                // ESC entfernt - verursachte Konflikte
+                        }
+                };
+
+                window.addEventListener('keydown', handleKeyPress);
+                return () => window.removeEventListener('keydown', handleKeyPress);
+        }, [SellingMode, showToggle, CurrentShop, clearCart, setSellingMode]);
         return (
                 <div className="flex size-full flex-col gap-1">
                         <div className="flex w-full items-center justify-between gap-2">
@@ -97,6 +128,14 @@ export default function ShopInterface() {
                                                         🔫 Ausrauben
                                                 </Button>
                                         )}
+                                        <Button
+                                                size="icon"
+                                                variant="ghost"
+                                                className="hover:bg-blue-500/20 hover:text-blue-300 rounded-full gpu-accelerated smooth-transition mr-2"
+                                                title="Shortcuts: C=Warenkorb leeren, T=Modus wechseln, ESC=Schließen, Doppelklick=5x kaufen"
+                                        >
+                                                <span className="text-blue-400 text-lg">?</span>
+                                        </Button>
                                         <Button
                                                 size="icon"
                                                 variant="ghost"

@@ -88,17 +88,17 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
                 }
         },
 
-	addItemToCart: (item: ShopItem, amount: number) => {
+	addItemToCart: (item: ShopItem, amount: number = 1) => {
 		const { CartItems, cartWeight, cartValue } = get();
 		const existingItemIndex = CartItems.findIndex((cartItem) => cartItem.id === item.id);
 
-		const newCartWeight = cartWeight + (item.weight || 0) * (amount || 1);
-		const newCartValue = cartValue + (item.price || 0) * (amount || 1);
+		const newCartWeight = cartWeight + (item.weight || 0) * amount;
+		const newCartValue = cartValue + (item.price || 0) * amount;
 
 		if (existingItemIndex >= 0) {
 			// Item already exists in cart, increase quantity and update weight and value
 			const updatedCartItems = CartItems.map((cartItem, index) =>
-				index === existingItemIndex ? { ...cartItem, quantity: cartItem.quantity + (amount || 1) } : cartItem,
+				index === existingItemIndex ? { ...cartItem, quantity: cartItem.quantity + amount } : cartItem,
 			);
 			set(() => ({
 				CartItems: updatedCartItems,
@@ -107,13 +107,15 @@ export const useStoreShop = create<ShopItems>((set, get) => ({
 			}));
 		} else {
 			// Item not in cart, add new item
-			const newItem = { id: item.id, name: item.name, quantity: amount || 1, weight: item.weight, price: item.price };
+			const newItem = { id: item.id, name: item.name, quantity: amount, weight: item.weight, price: item.price };
 			set(() => ({
 				CartItems: [...CartItems, newItem],
 				cartWeight: newCartWeight,
 				cartValue: newCartValue,
 			}));
 		}
+
+		// Feedback entfernt - verursachte Probleme
 	},
 
 	removeItemFromCart: (itemId: number, amount?: number, removeAll: boolean = false) => {

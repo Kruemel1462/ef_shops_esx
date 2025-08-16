@@ -50,7 +50,12 @@ return {
                 showLoadingStates = true, -- Loading States anzeigen
                 enableAnimations = true, -- Animationen aktivieren
                 autoCloseAfterPurchase = false, -- Shop nach Kauf automatisch schließen
-                notificationDuration = 5000 -- Notification Dauer (ms)
+                notificationDuration = 3000, -- Notification Dauer (ms) - verkürzt für bessere UX
+                enableKeyboardShortcuts = true, -- Keyboard Shortcuts aktivieren
+                enableQuickBuy = true, -- Doppelklick für 5x kaufen
+                showHelpButton = true, -- Hilfe-Button anzeigen
+                enableBulkActions = true, -- Bulk-Aktionen im Warenkorb
+                quickSearchShortcuts = true -- !waffe, !essen etc. Shortcuts
         },
         
         robbery = {

@@ -78,15 +78,39 @@ export default function ShopGrid() {
                         <div className="relative mb-3">
                                 <input
                                         type="text"
-                                        placeholder="🔍 Suche nach Artikeln..."
+                                        placeholder="🔍 Suche... (Shortcuts: !waffe, !essen, !trinken)"
                                         value={searchText}
-                                        onChange={(e) => setSearchText(e.target.value)}
+                                        onChange={(e) => {
+                                                let value = e.target.value;
+                                                // Shortcuts für schnelle Suche
+                                                if (value.startsWith('!waffe')) {
+                                                        setActiveTab('Firearms');
+                                                        value = '';
+                                                } else if (value.startsWith('!essen')) {
+                                                        setActiveTab('Food');
+                                                        value = '';
+                                                } else if (value.startsWith('!trinken')) {
+                                                        setActiveTab('Drinks');
+                                                        value = '';
+                                                } else if (value.startsWith('!muni')) {
+                                                        setActiveTab('Ammunition');
+                                                        value = '';
+                                                }
+                                                setSearchText(value);
+                                        }}
                                         className="w-full rounded-lg bg-background/80 backdrop-blur-sm px-4 py-3 text-sm placeholder:text-gray-400 focus:outline-none transition-all duration-300"
+                                        onKeyDown={(e) => {
+                                                // ESC zum Leeren
+                                                if (e.key === 'Escape') {
+                                                        setSearchText('');
+                                                }
+                                        }}
                                 />
                                 {searchText && (
                                         <button
                                                 onClick={() => setSearchText("")}
                                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-purple-400 transition-colors duration-200"
+                                                title="ESC oder hier klicken zum Leeren"
                                         >
                                                 ✕
                                         </button>
