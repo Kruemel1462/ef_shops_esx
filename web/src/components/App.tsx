@@ -10,7 +10,7 @@ export default function App() {
 	return (
 		<VisibilityProvider>
 			<div className="h-screen w-screen">
-				<div className="h-[82vh] w-3/4 bg-background/[0.97] p-4 transition-all duration-300 rounded-lg mx-auto my-[9vh]">
+				<div className="h-[82vh] w-3/4 bg-background/[0.97] p-4 rounded-lg mx-auto my-[9vh] will-change-transform">
 					<ShopInterface />
 				</div>
 			</div>

@@ -74,7 +74,7 @@ export default function ShopInterface() {
                                         <PlayerData />
                                         {showToggle && (
                                                 <Button
-                                                        className="bg-indigo-700/30 text-indigo-200 hover:bg-indigo-600/40 transition-all duration-300 backdrop-blur-sm hover:scale-105"
+                                                        className="bg-indigo-700/30 text-indigo-200 hover:bg-indigo-600/40 backdrop-blur-sm gpu-accelerated smooth-transition"
                                                         variant="secondary"
                                                         onClick={() => {
                                                                 if (!SellingMode) {
@@ -88,7 +88,7 @@ export default function ShopInterface() {
                                         )}
                                         {canBuy && (
                                                 <Button
-                                                        className="bg-red-700/30 text-red-200 hover:bg-red-600/40 transition-all duration-300 backdrop-blur-sm hover:scale-105"
+                                                        className="bg-red-700/30 text-red-200 hover:bg-red-600/40 backdrop-blur-sm gpu-accelerated smooth-transition"
                                                         variant="secondary"
                                                         onClick={() => {
                                                                 if (!isEnvBrowser()) fetchNui("startRobbery");
@@ -100,7 +100,7 @@ export default function ShopInterface() {
                                         <Button
                                                 size="icon"
                                                 variant="ghost"
-                                                className="hover:bg-red-500/20 hover:text-red-300 transition-all duration-300 rounded-full hover:scale-110"
+                                                className="hover:bg-red-500/20 hover:text-red-300 rounded-full gpu-accelerated smooth-transition"
                                                 onClick={() => {
                                                         if (!isEnvBrowser()) fetchNui("hideFrame");
                                                 }}

@@ -240,7 +240,7 @@ export default function Cart() {
 													allowNegative={false}
 												/>
 												<Button
-													className="size-8 bg-red-700/30 text-red-200 hover:bg-red-600/40 backdrop-blur-sm hover:scale-105 transition-all duration-200"
+													className="size-8 bg-red-700/30 text-red-200 hover:bg-red-600/40 backdrop-blur-sm gpu-accelerated smooth-transition"
 													variant="secondary"
 													onClick={() => {
 														removeItemFromCart(item.id, null, true);

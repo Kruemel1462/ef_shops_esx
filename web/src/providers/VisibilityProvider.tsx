@@ -41,10 +41,21 @@ export const VisibilityProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 			}}
 		>
 			<motion.div
-				initial={{ opacity: 0, scale: 0.8 }}
-				animate={{ opacity: visible ? 1 : 0, scale: visible ? 1 : 0.8 }}
-				transition={{ duration: 0.2, ease: "easeInOut" }}
-				style={{ height: "100%" }}
+				initial={{ opacity: 0, scale: 0.95, y: 20 }}
+				animate={{ 
+					opacity: visible ? 1 : 0, 
+					scale: visible ? 1 : 0.95,
+					y: visible ? 0 : 20
+				}}
+				transition={{ 
+					duration: 0.15, 
+					ease: [0.4, 0, 0.2, 1],
+					type: "tween"
+				}}
+				style={{ 
+					height: "100%",
+					willChange: "transform, opacity"
+				}}
 			>
 				{children}
 			</motion.div>

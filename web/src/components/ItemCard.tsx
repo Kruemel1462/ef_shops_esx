@@ -32,7 +32,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 
                 return (
                         <div
-                                className={`flex h-full min-h-44 cursor-pointer flex-col justify-between rounded-xl bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-sm p-3 transition-all duration-300 hover:scale-105 ${!canSell ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                                className={`flex h-full min-h-44 cursor-pointer flex-col justify-between rounded-xl bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-sm p-3 gpu-accelerated smooth-transition ${!canSell ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:scale-[1.02]'}`}
                                 onClick={() => {
                                         if (!canSell) return;
                                         addItemToSellCart(item, 1);
@@ -83,7 +83,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 			</TooltipPortal>
 			<TooltipTrigger asChild>
 				<div
-					className={`flex h-full min-h-44 grow cursor-pointer flex-col justify-between rounded-xl bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-sm p-3 transition-all duration-300 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:bg-card/10 data-[disabled=true]:grayscale hover:data-[disabled=false]:scale-105`}
+					className={`flex h-full min-h-44 grow cursor-pointer flex-col justify-between rounded-xl bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-sm p-3 gpu-accelerated smooth-transition data-[disabled=true]:cursor-not-allowed data-[disabled=true]:bg-card/10 data-[disabled=true]:grayscale hover:data-[disabled=false]:scale-[1.02]`}
 					data-disabled={disabled}
 					onClick={() => {
 						if (disabled) return;
