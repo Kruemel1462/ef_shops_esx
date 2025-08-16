@@ -1,10 +1,10 @@
 ---@class ShopLocation
 ---@field label string the label of the shop location
----@field coords? vector3[] | vector4[] coordinates of shop locations (can be ommited if you only want to open the shop using an external resource)
+---@field coords? vector3[] | vector4[] coordinates of shop locations (can be omitted if you only want to open the shop using an external resource)
 ---@field model? number[] | string[] | number | string hash of model (ped/object) to pick from when spawning a shop vendor
 ---@field shopItems? string which table to pull shop items from
 ---@field sellItems? string[] | number[] items to sell
----@field blip? { sprite: number, color: number, scale?: number, disabled: boolean } blip data for the shop
+---@field blip? { sprite: number, color: number, scale?: number, disabled?: boolean } blip data for the shop
 ---@field jobs? table<string, number> map of group names to min grade required to access the shop
 ---@field societies? table<string, number | string> society names mapped to required rank to pay with society funds
 ---@field target? { label?: string, radius?: number, icon?: string } target data for the shop
@@ -176,47 +176,50 @@ return {
     --            }
     --    },
 
-       buyonly = {
-                label = "Buy Only Shop",
-				model = {
-                       "S_M_M_LifeInvad_01"
-               },
-                coords = {
-                        vector4(229.07, -883.27, 29.59, 346.28)
-                },
-                shopItems = "electronics",
-				blip = {
-                       sprite = 606,
-                       color = 7,
-               }
-       },
-       buyonly_test = {
-                label = "Buy Only Shop #2",
-				model = {
-                       "S_M_M_LifeInvad_01"
-               },
-                coords = {
-                        vector4(226.98, -893.11, 29.60, 344.00)
-                },
-                shopItems = "electronics",
-				blip = {
-                       sprite = 606,
-                       color = 7,
-               }
-       },
+	buyonly = {
+		label = "Buy Only Shop",
+		model = {
+			"S_M_M_LifeInvad_01"
+		},
+		coords = {
+			vector4(229.07, -883.27, 29.59, 346.28)
+		},
+		shopItems = "electronics",
+		blip = {
+			sprite = 606,
+			color = 7,
+			scale = 0.8
+		}
+	},
+	buyonly_test = {
+		label = "Buy Only Shop #2",
+		model = {
+			"S_M_M_LifeInvad_01"
+		},
+		coords = {
+			vector4(226.98, -893.11, 29.60, 344.00)
+		},
+		shopItems = "electronics",
+		blip = {
+			sprite = 606,
+			color = 7,
+			scale = 0.8
+		}
+	},
 
-       sellonly = {
-                label = "Sell Only Shop",
-				model = {
-                       "S_M_M_LifeInvad_01"
-               },
-                coords = {
-                        vector4(225.12, -887.10, 29.60, 226.84)
-                },
-				blip = {
-                       sprite = 606,
-                       color = 7,
-               },
-                sellItems = { 'phone', 'radio', 'lockpick' },
-       },
+	sellonly = {
+		label = "Sell Only Shop",
+		model = {
+			"S_M_M_LifeInvad_01"
+		},
+		coords = {
+			vector4(225.12, -887.10, 29.60, 226.84)
+		},
+		blip = {
+			sprite = 606,
+			color = 7,
+			scale = 0.8
+		},
+		sellItems = { 'phone', 'radio', 'lockpick' }
+	}
 }
