@@ -1,4 +1,13 @@
-import { faMoneyBill1Wave, faFaceFrown, faXmark, faShoppingBag } from "@fortawesome/free-solid-svg-icons";
+import { 
+	faMoneyBill1Wave, 
+	faFaceFrown, 
+	faXmark, 
+	faShoppingBag, 
+	faHandshake, 
+	faTrash, 
+	faCheckCircle,
+	faCoins
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useStoreShop } from "../stores/ShopStore";
 import { formatMoney } from "../utils/misc";
@@ -94,8 +103,12 @@ function SellButton() {
 						}
 					}}
 				>
-					{awaitingSell ? <Loader /> : <FontAwesomeIcon size="lg" icon={faMoneyBill1Wave} />}
-					{!awaitingSell && " Verkaufen"}
+					{awaitingSell ? <Loader /> : (
+						<>
+							<FontAwesomeIcon size="lg" icon={faHandshake} />
+							<span className="ml-2">Verkaufen</span>
+						</>
+					)}
 				</Button>
 			</div>
 		</div>
@@ -111,7 +124,9 @@ export default function SellCart() {
 		<div className="flex h-full w-[25%] min-w-[25%] flex-col justify-between gap-1">
 			<div className="flex justify-between gap-1">
 				<div className="mx-2 flex items-center gap-2 leading-none">
-					<FontAwesomeIcon size="lg" icon={faShoppingBag} />
+					<div className="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg shadow-md">
+						<FontAwesomeIcon size="lg" icon={faShoppingBag} className="text-green-300" />
+					</div>
 					<h3 className="scroll-m-20 text-2xl font-semibold tracking-tight">Verkaufskorb</h3>
 				</div>
 
@@ -124,9 +139,14 @@ export default function SellCart() {
 			</div>
 			<div className={`flex h-0 grow flex-col gap-3 ${SellCartItems?.length > 0 && "overflow-y-auto"}`}>
 				{SellCartItems?.length <= 0 ? (
-					<div className="my-auto flex flex-col items-center gap-1">
-						<FontAwesomeIcon icon={faFaceFrown} size="2x" />
-						<h1 className="text-2xl font-bold">Keine Items zum Verkaufen</h1>
+					<div className="my-auto flex flex-col items-center gap-3">
+						<div className="flex items-center justify-center w-20 h-20 bg-gradient-to-br from-gray-500/20 to-gray-600/20 rounded-full shadow-lg">
+							<FontAwesomeIcon icon={faFaceFrown} size="3x" className="text-gray-400" />
+						</div>
+						<div className="text-center">
+							<h1 className="text-2xl font-bold text-gray-300">Keine Items zum Verkaufen</h1>
+							<p className="text-sm text-gray-400 mt-1">Wähle Items aus deinem Inventar</p>
+						</div>
 					</div>
 				) : (
 					<ScrollArea className="h-full">
@@ -179,13 +199,13 @@ export default function SellCart() {
 													allowNegative={false}
 												/>
 												<Button
-													className="size-8 bg-red-700/20 text-red-300 hover:bg-red-800/20"
+													className="size-8 bg-red-700/20 text-red-300 hover:bg-red-800/20 hover:shadow-lg hover:shadow-red-500/20 transition-all duration-200"
 													variant="secondary"
 													onClick={() => {
 														removeItemFromSellCart(item.id, 0, true);
 													}}
 												>
-													<FontAwesomeIcon icon={faXmark} size="lg" />
+													<FontAwesomeIcon icon={faTrash} size="sm" />
 												</Button>
 											</div>
 										</div>
