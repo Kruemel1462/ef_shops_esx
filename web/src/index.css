@@ -101,51 +101,63 @@ body {
 	height: 100%;
 }
 
-/* width */
+/* Improved Scrollbar */
 ::-webkit-scrollbar {
-	width: 8px;
-	border-radius: 12px;
+	width: 10px;
+	border-radius: 16px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
-	background: rgba(147, 51, 234, 0.1);
-	border-radius: 12px;
+	background: rgba(147, 51, 234, 0.15);
+	border-radius: 16px;
+	border: 1px solid rgba(147, 51, 234, 0.1);
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-	background: linear-gradient(180deg, #9333ea, #7c3aed);
-	border-radius: 12px;
-	border: 2px solid rgba(147, 51, 234, 0.1);
+	background: linear-gradient(180deg, #a855f7, #9333ea, #7c3aed);
+	border-radius: 16px;
+	border: 2px solid rgba(147, 51, 234, 0.2);
+	box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+	transition: all 0.3s ease;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-	background: linear-gradient(180deg, #7c3aed, #6d28d9);
+	background: linear-gradient(180deg, #9333ea, #7c3aed, #6d28d9);
+	box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+	transform: scale(1.05);
 }
 
-/* Custom purple UI enhancements */
+/* Enhanced purple UI with improved animations */
 .bg-card {
-	background: linear-gradient(135deg, hsl(var(--card)), hsl(270 40% 96%));
+	background: linear-gradient(135deg, hsl(var(--card) / 0.8), hsl(270 40% 96% / 0.6));
 	border-radius: 1.5rem;
-	border: 1px solid hsl(270 60% 88%);
-	box-shadow: 0 4px 20px rgba(147, 51, 234, 0.1);
+	border: 1px solid hsl(270 60% 88% / 0.5);
+	box-shadow: 0 8px 32px rgba(147, 51, 234, 0.15), 0 2px 8px rgba(147, 51, 234, 0.1);
+	backdrop-filter: blur(8px);
 }
 
 .border {
-	border-color: hsl(270 50% 85%);
+	border-color: hsl(270 50% 85% / 0.6);
 	border-radius: 1rem;
 }
 
 button {
 	border-radius: 1rem;
-	transition: all 0.3s ease;
+	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	backdrop-filter: blur(8px);
 }
 
 button:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 8px 25px rgba(147, 51, 234, 0.2);
+	transform: translateY(-3px) scale(1.02);
+	box-shadow: 0 12px 35px rgba(147, 51, 234, 0.25), 0 4px 15px rgba(147, 51, 234, 0.15);
+}
+
+button:active {
+	transform: translateY(-1px) scale(0.98);
+	transition: all 0.1s ease;
 }
 
 .bg-primary {
@@ -160,18 +172,77 @@ button:hover {
 
 input, select, textarea {
 	border-radius: 1rem;
-	border: 2px solid hsl(270 40% 85%);
-	transition: border-color 0.3s ease;
+	border: 2px solid hsl(270 40% 85% / 0.6);
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	backdrop-filter: blur(4px);
 }
 
 input:focus, select:focus, textarea:focus {
 	border-color: hsl(270 70% 55%);
-	box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+	box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.15), 0 8px 25px rgba(147, 51, 234, 0.1);
+	transform: translateY(-1px);
 }
 
-/* Purple glow effects */
+/* Purple glow effects and animations */
 .glow-purple {
 	box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
+}
+
+/* Smooth entrance animations */
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes slideInRight {
+	from {
+		opacity: 0;
+		transform: translateX(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes scaleIn {
+	from {
+		opacity: 0;
+		transform: scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+/* Apply animations to components */
+.animate-fade-in-up {
+	animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-slide-in-right {
+	animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-scale-in {
+	animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Improved hover effects for interactive elements */
+.hover-lift {
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+	transform: translateY(-4px);
+	box-shadow: 0 12px 40px rgba(147, 51, 234, 0.2);
 }
 
 /* Einkaufskorb - Original dark theme for better readability */

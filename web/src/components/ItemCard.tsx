@@ -32,7 +32,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 
                 return (
                         <div
-                                className={`flex h-full min-h-40 cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all duration-200 hover:scale-105 hover:bg-card/30 hover:shadow-lg hover:shadow-purple-500/10 ${!canSell ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`flex h-full min-h-44 cursor-pointer flex-col justify-between rounded-xl bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-sm p-3 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-purple-500/20 border border-purple-500/20 ${!canSell ? 'opacity-50 cursor-not-allowed grayscale' : 'hover:border-purple-400/40'}`}
                                 onClick={() => {
                                         if (!canSell) return;
                                         addItemToSellCart(item, 1);
@@ -40,26 +40,30 @@ export default function ItemCard({ item }: { item: ShopItem }) {
                         >
                                 <div className="mx-auto flex w-full items-center justify-between gap-2">
                                         <div className="text-right">
-                                                <p className="text-lg font-semibold">{'$'}{item.price}</p>
+                                                <div className="bg-green-600/30 backdrop-blur-sm px-2 py-1 rounded-md border border-green-500/30">
+                                                        <p className="text-lg font-bold text-green-200">${item.price}</p>
+                                                </div>
                                                 {typeof item.basePrice === 'number' && item.basePrice > 0 && item.basePrice !== item.price && (
-                                                        <p className={`text-xs font-semibold ${item.price > item.basePrice ? 'text-red-400' : 'text-green-400'}`}>
-                                                                {item.price > item.basePrice ? '▲' : '▼'} {Math.round(((item.price - item.basePrice) / item.basePrice) * 100)}%
+                                                        <p className={`text-xs font-semibold mt-1 ${item.price > item.basePrice ? 'text-red-400' : 'text-green-400'}`}>
+                                                                {item.price > item.basePrice ? '📈' : '📉'} {Math.round(((item.price - item.basePrice) / item.basePrice) * 100)}%
                                                         </p>
                                                 )}
                                         </div>
-                                        <p className="text-lg font-semibold">{item.count}x</p>
+                                        <div className="bg-purple-600/30 backdrop-blur-sm px-2 py-1 rounded-md border border-purple-500/30">
+                                                <p className="text-lg font-bold text-purple-200">{item.count}x</p>
+                                        </div>
                                 </div>
-                                <div className="m-auto h-[80%]">
+                                <div className="m-auto h-[70%] flex items-center justify-center bg-background/30 rounded-lg border border-purple-500/10">
                                         <img
                                                 onError={(event: SyntheticEvent<HTMLImageElement, Event>) => {
                                                         event.currentTarget.src = "./Box.png";
                                                 }}
-                                                className="h-full w-full object-contain"
+                                                className="h-full w-full object-contain p-2"
                                                 src={item.imagePath}
                                                 alt={item.label}
                                         />
                                 </div>
-                                <div className="text-md text-center font-semibold">{item.label}</div>
+                                <div className="text-sm text-center font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent px-2 py-1 rounded-md bg-background/20">{item.label}</div>
                         </div>
                 );
         }
@@ -79,7 +83,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 			</TooltipPortal>
 			<TooltipTrigger asChild>
 				<div
-					className={`flex h-full min-h-40 grow cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all duration-200 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:bg-card/10 data-[disabled=true]:grayscale hover:data-[disabled=false]:scale-105 data-[disabled=false]:hover:bg-card/30 hover:data-[disabled=false]:shadow-lg hover:data-[disabled=false]:shadow-purple-500/10`}
+					className={`flex h-full min-h-44 grow cursor-pointer flex-col justify-between rounded-xl bg-gradient-to-br from-card/60 to-card/40 backdrop-blur-sm p-3 transition-all duration-300 border border-purple-500/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:bg-card/10 data-[disabled=true]:grayscale data-[disabled=true]:border-gray-500/20 hover:data-[disabled=false]:scale-105 data-[disabled=false]:hover:shadow-xl hover:data-[disabled=false]:shadow-purple-500/20 hover:data-[disabled=false]:border-purple-400/40`}
 					data-disabled={disabled}
 					onClick={() => {
 						if (disabled) return;
@@ -88,26 +92,34 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 				>
 					<div className="mx-auto flex w-full items-center justify-between gap-2">
                         <div className="text-right">
-                                <p className="text-lg font-semibold">{item.price == 0 ? "GRATIS" : "$" + item.price}</p>
+                                <div className={`backdrop-blur-sm px-2 py-1 rounded-md border ${item.price == 0 ? 'bg-emerald-600/30 border-emerald-500/30' : 'bg-blue-600/30 border-blue-500/30'}`}>
+                                        <p className={`text-lg font-bold ${item.price == 0 ? 'text-emerald-200' : 'text-blue-200'}`}>
+                                                {item.price == 0 ? "GRATIS" : "$" + item.price}
+                                        </p>
+                                </div>
                                 {typeof item.basePrice === 'number' && item.basePrice > 0 && item.basePrice !== item.price && (
-                                        <p className={`text-xs font-semibold ${item.price > item.basePrice ? 'text-red-400' : 'text-green-400'}`}>
-                                                {item.price > item.basePrice ? '▲' : '▼'} {Math.round(((item.price - item.basePrice) / item.basePrice) * 100)}%
+                                        <p className={`text-xs font-semibold mt-1 ${item.price > item.basePrice ? 'text-red-400' : 'text-green-400'}`}>
+                                                {item.price > item.basePrice ? '📈' : '📉'} {Math.round(((item.price - item.basePrice) / item.basePrice) * 100)}%
                                         </p>
                                 )}
                         </div>
-						{item.count !== undefined && <p className="text-lg font-semibold">{item.count}x</p>}
+						{item.count !== undefined && (
+                                <div className="bg-purple-600/30 backdrop-blur-sm px-2 py-1 rounded-md border border-purple-500/30">
+                                        <p className="text-lg font-bold text-purple-200">{item.count}x</p>
+                                </div>
+                        )}
 					</div>
-					<div className="m-auto h-[80%]">
+					<div className="m-auto h-[70%] flex items-center justify-center bg-background/30 rounded-lg border border-purple-500/10">
 						<img
 							onError={(event: SyntheticEvent<HTMLImageElement, Event>) => {
 								event.currentTarget.src = "./Box.png";
 							}}
-							className="h-full w-full object-contain"
+							className="h-full w-full object-contain p-2"
 							src={item.imagePath}
 							alt={item.label}
 						/>
 					</div>
-					<div className="text-md text-center font-semibold">{item.label}</div>
+					<div className="text-sm text-center font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent px-2 py-1 rounded-md bg-background/20">{item.label}</div>
 				</div>
 			</TooltipTrigger>
 		</Tooltip>

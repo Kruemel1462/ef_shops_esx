@@ -22,7 +22,14 @@ function ShopTitle() {
 			</div>
 		);
 
-	return <h1 className="ml-6 text-4xl font-bold text-shadow-lg shadow-purple-500/20">{CurrentShop?.label}</h1>;
+	return (
+		<div className="ml-6 flex items-center gap-3">
+			<div className="h-12 w-1 bg-gradient-to-b from-purple-500 to-purple-700 rounded-full"></div>
+			<h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent drop-shadow-lg">
+				{CurrentShop?.label}
+			</h1>
+		</div>
+	);
 }
 
 function PlayerData() {
@@ -33,20 +40,20 @@ function PlayerData() {
         if (!Money) return null;
 
         return (
-                <div className="flex gap-2">
-                        <p className="flex items-center gap-2 rounded-md bg-green-700/20 px-5 py-1 text-lg font-bold leading-none text-green-400 shadow-lg shadow-green-500/10">
-                                <FontAwesomeIcon size="xl" icon={faMoneyBill1Wave} />
-                                {"$" + formatMoney(Money.Cash)}
-                        </p>
-                        <p className="flex items-center gap-2 rounded-md bg-blue-600/20 px-5 py-1 text-lg font-bold leading-none text-blue-400 shadow-lg shadow-blue-500/10">
-                                <FontAwesomeIcon size="xl" icon={faCreditCard} />
-                                {"$" + formatMoney(Money.Bank)}
-                        </p>
+                <div className="flex gap-3">
+                        <div className="flex items-center gap-2 rounded-lg bg-green-700/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-green-300 shadow-lg shadow-green-500/20 border border-green-500/30 hover:bg-green-700/40 transition-all duration-200">
+                                <FontAwesomeIcon size="lg" icon={faMoneyBill1Wave} className="text-green-400" />
+                                <span className="text-green-100">${formatMoney(Money.Cash)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 rounded-lg bg-blue-600/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-blue-300 shadow-lg shadow-blue-500/20 border border-blue-500/30 hover:bg-blue-600/40 transition-all duration-200">
+                                <FontAwesomeIcon size="lg" icon={faCreditCard} className="text-blue-400" />
+                                <span className="text-blue-100">${formatMoney(Money.Bank)}</span>
+                        </div>
                         {Money.Society > 0 && (
-                                <p className="flex items-center gap-2 rounded-md bg-orange-600/20 px-5 py-1 text-lg font-bold leading-none text-orange-400 shadow-lg shadow-orange-500/10">
-                                        <FontAwesomeIcon size="xl" icon={faUsers} />
-                                        {"$" + formatMoney(Money.Society)}
-                                </p>
+                                <div className="flex items-center gap-2 rounded-lg bg-orange-600/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-orange-300 shadow-lg shadow-orange-500/20 border border-orange-500/30 hover:bg-orange-600/40 transition-all duration-200">
+                                        <FontAwesomeIcon size="lg" icon={faUsers} className="text-orange-400" />
+                                        <span className="text-orange-100">${formatMoney(Money.Society)}</span>
+                                </div>
                         )}
                 </div>
         );
@@ -67,7 +74,7 @@ export default function ShopInterface() {
                                         <PlayerData />
                                         {showToggle && (
                                                 <Button
-                                                        className="bg-indigo-700/20 text-indigo-300 hover:bg-indigo-800/20 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/20"
+                                                        className="bg-indigo-700/30 text-indigo-200 hover:bg-indigo-600/40 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/30 border border-indigo-500/30 backdrop-blur-sm hover:scale-105"
                                                         variant="secondary"
                                                         onClick={() => {
                                                                 if (!SellingMode) {
@@ -76,28 +83,29 @@ export default function ShopInterface() {
                                                                 setSellingMode(!SellingMode);
                                                         }}
                                                 >
-                                                        {SellingMode ? "Kaufen" : "Verkaufen"}
+                                                        {SellingMode ? "🛒 Kaufen" : "💰 Verkaufen"}
                                                 </Button>
                                         )}
                                         {canBuy && (
                                                 <Button
-                                                        className="bg-red-700/20 text-red-300 hover:bg-red-800/20 transition-all duration-200 hover:shadow-lg hover:shadow-red-500/20"
+                                                        className="bg-red-700/30 text-red-200 hover:bg-red-600/40 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/30 border border-red-500/30 backdrop-blur-sm hover:scale-105"
                                                         variant="secondary"
                                                         onClick={() => {
                                                                 if (!isEnvBrowser()) fetchNui("startRobbery");
                                                         }}
                                                 >
-                                                        Ausrauben
+                                                        🔫 Ausrauben
                                                 </Button>
                                         )}
                                         <Button
                                                 size="icon"
                                                 variant="ghost"
+                                                className="hover:bg-red-500/20 hover:text-red-300 transition-all duration-300 rounded-full hover:scale-110"
                                                 onClick={() => {
                                                         if (!isEnvBrowser()) fetchNui("hideFrame");
                                                 }}
                                         >
-                                                <FontAwesomeIcon icon={faXmark} className="p-2" size="xl" />
+                                                <FontAwesomeIcon icon={faXmark} className="p-2 text-gray-400 hover:text-red-400 transition-colors" size="xl" />
                                         </Button>
                                 </div>
 			</div>
