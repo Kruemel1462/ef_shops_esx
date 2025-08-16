@@ -78,18 +78,21 @@
 
 @layer base {
 	* {
-		border-color: transparent;
-		box-shadow: none;
+		border: none !important;
+		box-shadow: none !important;
+		outline: none !important;
 	}
 	body {
 		@apply text-foreground;
 		background: transparent !important;
-		border: none !important;
-		box-shadow: none !important;
+		margin: 0 !important;
+		padding: 0 !important;
 	}
 	div,
 	button {
 		@apply text-foreground;
+		border: none !important;
+		outline: none !important;
 	}
 }
 
@@ -141,17 +144,17 @@ body {
 	transform: scale(1.05);
 }
 
-/* Enhanced purple UI with improved animations */
+/* Enhanced purple UI with improved animations - NO BORDERS */
 .bg-card {
 	background: linear-gradient(135deg, hsl(var(--card) / 0.8), hsl(270 40% 96% / 0.6));
 	border-radius: 1.5rem;
-	border: 1px solid hsl(270 60% 88% / 0.5);
-	box-shadow: 0 8px 32px rgba(147, 51, 234, 0.15), 0 2px 8px rgba(147, 51, 234, 0.1);
+	border: none !important;
+	box-shadow: none !important;
 	backdrop-filter: blur(8px);
 }
 
 .border {
-	border-color: hsl(270 50% 85% / 0.6);
+	border: none !important;
 	border-radius: 1rem;
 }
 
@@ -159,11 +162,13 @@ button {
 	border-radius: 1rem;
 	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 	backdrop-filter: blur(8px);
+	border: none !important;
+	outline: none !important;
 }
 
 button:hover {
 	transform: translateY(-3px) scale(1.02);
-	box-shadow: 0 12px 35px rgba(147, 51, 234, 0.25), 0 4px 15px rgba(147, 51, 234, 0.15);
+	box-shadow: none !important;
 }
 
 button:active {
@@ -183,20 +188,22 @@ button:active {
 
 input, select, textarea {
 	border-radius: 1rem;
-	border: 2px solid hsl(270 40% 85% / 0.6);
+	border: none !important;
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	backdrop-filter: blur(4px);
+	outline: none !important;
 }
 
 input:focus, select:focus, textarea:focus {
-	border-color: hsl(270 70% 55%);
-	box-shadow: 0 0 0 4px rgba(147, 51, 234, 0.15), 0 8px 25px rgba(147, 51, 234, 0.1);
+	border: none !important;
+	box-shadow: none !important;
+	outline: none !important;
 	transform: translateY(-1px);
 }
 
-/* Purple glow effects and animations */
+/* Purple glow effects and animations - DISABLED */
 .glow-purple {
-	box-shadow: 0 0 20px rgba(147, 51, 234, 0.3);
+	box-shadow: none !important;
 }
 
 /* Smooth entrance animations */
@@ -246,14 +253,14 @@ input:focus, select:focus, textarea:focus {
 	animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Improved hover effects for interactive elements */
+/* Improved hover effects for interactive elements - NO SHADOWS */
 .hover-lift {
 	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hover-lift:hover {
 	transform: translateY(-4px);
-	box-shadow: 0 12px 40px rgba(147, 51, 234, 0.2);
+	box-shadow: none !important;
 }
 
 /* Einkaufskorb - Original dark theme for better readability */

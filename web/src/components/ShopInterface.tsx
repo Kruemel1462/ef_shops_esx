@@ -41,16 +41,16 @@ function PlayerData() {
 
         return (
                 <div className="flex gap-3">
-                        <div className="flex items-center gap-2 rounded-lg bg-green-700/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-green-300 shadow-lg shadow-green-500/20 border border-green-500/30 hover:bg-green-700/40 transition-all duration-200">
+                        <div className="flex items-center gap-2 rounded-lg bg-green-700/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-green-300 hover:bg-green-700/40 transition-all duration-200">
                                 <FontAwesomeIcon size="lg" icon={faMoneyBill1Wave} className="text-green-400" />
                                 <span className="text-green-100">${formatMoney(Money.Cash)}</span>
                         </div>
-                        <div className="flex items-center gap-2 rounded-lg bg-blue-600/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-blue-300 shadow-lg shadow-blue-500/20 border border-blue-500/30 hover:bg-blue-600/40 transition-all duration-200">
+                        <div className="flex items-center gap-2 rounded-lg bg-blue-600/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-blue-300 hover:bg-blue-600/40 transition-all duration-200">
                                 <FontAwesomeIcon size="lg" icon={faCreditCard} className="text-blue-400" />
                                 <span className="text-blue-100">${formatMoney(Money.Bank)}</span>
                         </div>
                         {Money.Society > 0 && (
-                                <div className="flex items-center gap-2 rounded-lg bg-orange-600/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-orange-300 shadow-lg shadow-orange-500/20 border border-orange-500/30 hover:bg-orange-600/40 transition-all duration-200">
+                                <div className="flex items-center gap-2 rounded-lg bg-orange-600/30 backdrop-blur-sm px-4 py-2 text-lg font-bold leading-none text-orange-300 hover:bg-orange-600/40 transition-all duration-200">
                                         <FontAwesomeIcon size="lg" icon={faUsers} className="text-orange-400" />
                                         <span className="text-orange-100">${formatMoney(Money.Society)}</span>
                                 </div>
@@ -74,7 +74,7 @@ export default function ShopInterface() {
                                         <PlayerData />
                                         {showToggle && (
                                                 <Button
-                                                        className="bg-indigo-700/30 text-indigo-200 hover:bg-indigo-600/40 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/30 border border-indigo-500/30 backdrop-blur-sm hover:scale-105"
+                                                        className="bg-indigo-700/30 text-indigo-200 hover:bg-indigo-600/40 transition-all duration-300 backdrop-blur-sm hover:scale-105"
                                                         variant="secondary"
                                                         onClick={() => {
                                                                 if (!SellingMode) {
@@ -88,7 +88,7 @@ export default function ShopInterface() {
                                         )}
                                         {canBuy && (
                                                 <Button
-                                                        className="bg-red-700/30 text-red-200 hover:bg-red-600/40 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/30 border border-red-500/30 backdrop-blur-sm hover:scale-105"
+                                                        className="bg-red-700/30 text-red-200 hover:bg-red-600/40 transition-all duration-300 backdrop-blur-sm hover:scale-105"
                                                         variant="secondary"
                                                         onClick={() => {
                                                                 if (!isEnvBrowser()) fetchNui("startRobbery");

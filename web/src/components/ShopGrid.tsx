@@ -81,7 +81,7 @@ export default function ShopGrid() {
                                         placeholder="🔍 Suche nach Artikeln..."
                                         value={searchText}
                                         onChange={(e) => setSearchText(e.target.value)}
-                                        className="w-full rounded-lg border-2 border-purple-500/30 bg-background/80 backdrop-blur-sm px-4 py-3 text-sm placeholder:text-gray-400 focus:border-purple-500/60 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"
+                                        className="w-full rounded-lg bg-background/80 backdrop-blur-sm px-4 py-3 text-sm placeholder:text-gray-400 focus:outline-none transition-all duration-300"
                                 />
                                 {searchText && (
                                         <button
@@ -93,7 +93,7 @@ export default function ShopGrid() {
                                 )}
                         </div>
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex size-full flex-col">
-                                <TabsList className="justify-start bg-gradient-to-r from-purple-900/20 to-purple-800/20 backdrop-blur-sm border border-purple-500/20 rounded-lg p-1 mb-2">
+                                <TabsList className="justify-start bg-gradient-to-r from-purple-900/20 to-purple-800/20 backdrop-blur-sm rounded-lg p-1 mb-2">
                                         {Object.keys(categories).map((category) => (
                                                 <TabsTrigger 
                                                         value={category} 

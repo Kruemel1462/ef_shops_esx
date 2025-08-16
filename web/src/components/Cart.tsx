@@ -88,7 +88,7 @@ function PaymentButtons() {
 				</div>
 				<div className="mt-2">
 					<Button
-						className="w-full bg-gradient-to-r from-emerald-600/40 to-emerald-700/40 text-emerald-100 hover:from-emerald-500/50 hover:to-emerald-600/50 hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 border border-emerald-500/30 backdrop-blur-sm font-bold py-3 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:grayscale"
+						className="w-full bg-gradient-to-r from-emerald-600/40 to-emerald-700/40 text-emerald-100 hover:from-emerald-500/50 hover:to-emerald-600/50 transition-all duration-300 backdrop-blur-sm font-bold py-3 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50 data-[disabled=true]:grayscale"
 						variant="secondary"
 						data-disabled={!CartItems || CartItems.length === 0 || awaiting || overWeight || (method === 'cash' && !canAffordCash) || (method === 'card' && !canAffordCard) || (method === 'society' && !canAffordSociety)}
 						onClick={async () => {
@@ -105,7 +105,7 @@ function PaymentButtons() {
 						{awaiting ? <Loader /> : '💳 Jetzt bezahlen'}
 					</Button>
 				</div>
-				<div className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-800/30 to-purple-800/30 backdrop-blur-sm px-3 py-2 text-sm font-medium text-indigo-300 border border-indigo-500/20">
+				<div className="mt-2 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-indigo-800/30 to-purple-800/30 backdrop-blur-sm px-3 py-2 text-sm font-medium text-indigo-300">
 					<FontAwesomeIcon size="sm" icon={faWeightHanging} className="text-indigo-400" />
 					<span className="text-indigo-200">
 						{formatWeight(Weight)}kg
@@ -127,14 +127,14 @@ export default function Cart() {
 		<div className="flex h-full w-[25%] min-w-[25%] flex-col justify-between gap-1">
 			<div className="flex justify-between items-center gap-2 mb-2">
 				<div className="mx-2 flex items-center gap-3 leading-none">
-					<div className="p-2 rounded-lg bg-purple-600/30 backdrop-blur-sm border border-purple-500/30">
+					<div className="p-2 rounded-lg bg-purple-600/30 backdrop-blur-sm">
 						<FontAwesomeIcon size="lg" icon={faBasketShopping} className="text-purple-300" />
 					</div>
 					<h3 className="scroll-m-20 text-2xl font-bold tracking-tight bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Einkaufskorb</h3>
 				</div>
 
 				{CartItems && CartItems.length > 0 && (
-					<div className="mx-2 bg-gradient-to-r from-green-600/30 to-emerald-600/30 backdrop-blur-sm px-3 py-2 rounded-lg border border-green-500/30">
+					<div className="mx-2 bg-gradient-to-r from-green-600/30 to-emerald-600/30 backdrop-blur-sm px-3 py-2 rounded-lg">
 						<div className="text-sm text-green-300 font-medium">Gesamt:</div>
 						<div className="text-lg font-bold text-green-100">
 							{cartPrice == 0 ? "💰 Kostenlos" : "$" + formatMoney(cartPrice)}
@@ -144,8 +144,8 @@ export default function Cart() {
 			</div>
 			<div className={`flex h-0 grow flex-col gap-3 ${CartItems?.length > 0 && "overflow-y-auto"}`}>
 				{CartItems?.length <= 0 ? (
-					<div className="my-auto flex flex-col items-center gap-3 p-6 rounded-lg bg-gradient-to-br from-purple-900/20 to-gray-800/20 backdrop-blur-sm border border-purple-500/20">
-						<div className="p-4 rounded-full bg-purple-600/20 border border-purple-500/30">
+					<div className="my-auto flex flex-col items-center gap-3 p-6 rounded-lg bg-gradient-to-br from-purple-900/20 to-gray-800/20 backdrop-blur-sm">
+						<div className="p-4 rounded-full bg-purple-600/20">
 							<FontAwesomeIcon icon={faFaceFrown} size="2x" className="text-purple-400" />
 						</div>
 						<div className="text-center">
@@ -194,11 +194,11 @@ export default function Cart() {
 							};
 
 							return (
-								<div className="mx-1 p-3 rounded-lg bg-gradient-to-r from-card/40 to-card/20 backdrop-blur-sm border border-purple-500/20 hover:border-purple-400/30 transition-all duration-200" key={item.id}>
+								<div className="mx-1 p-3 rounded-lg bg-gradient-to-r from-card/40 to-card/20 backdrop-blur-sm transition-all duration-200" key={item.id}>
 									<div className="flex w-full flex-nowrap items-center justify-between">
 										<div className="font-semibold tracking-tight text-purple-100 flex-1">{storeItem.label}</div>
 										<div className="flex w-min shrink flex-nowrap items-center gap-3 font-semibold tracking-tight">
-											<div className="bg-green-600/30 backdrop-blur-sm px-2 py-1 rounded-md border border-green-500/30">
+											<div className="bg-green-600/30 backdrop-blur-sm px-2 py-1 rounded-md">
 												<span className="text-green-200 font-bold">${formatMoney(price * item.quantity)}</span>
 											</div>
 											<div className="flex flex-nowrap items-center gap-2">
@@ -240,7 +240,7 @@ export default function Cart() {
 													allowNegative={false}
 												/>
 												<Button
-													className="size-8 bg-red-700/30 text-red-200 hover:bg-red-600/40 border border-red-500/30 backdrop-blur-sm hover:scale-105 transition-all duration-200"
+													className="size-8 bg-red-700/30 text-red-200 hover:bg-red-600/40 backdrop-blur-sm hover:scale-105 transition-all duration-200"
 													variant="secondary"
 													onClick={() => {
 														removeItemFromCart(item.id, null, true);
