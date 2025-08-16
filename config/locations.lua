@@ -2,7 +2,8 @@
 ---@field label string the label of the shop location
 ---@field coords? vector3[] | vector4[] coordinates of shop locations (can be ommited if you only want to open the shop using an external resource)
 ---@field model? number[] | string[] | number | string hash of model (ped/object) to pick from when spawning a shop vendor
----@field shopItems string which table to pull shop items from
+---@field shopItems? string which table to pull shop items from
+---@field sellItems? string[] | number[] items to sell
 ---@field blip? { sprite: number, color: number, scale?: number, disabled: boolean } blip data for the shop
 ---@field jobs? table<string, number> map of group names to min grade required to access the shop
 ---@field societies? table<string, number | string> society names mapped to required rank to pay with society funds
