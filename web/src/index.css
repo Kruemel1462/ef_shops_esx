@@ -78,10 +78,14 @@
 
 @layer base {
 	* {
-		@apply border-border;
+		border-color: transparent;
+		box-shadow: none;
 	}
 	body {
-		@apply bg-background text-foreground;
+		@apply text-foreground;
+		background: transparent !important;
+		border: none !important;
+		box-shadow: none !important;
 	}
 	div,
 	button {
