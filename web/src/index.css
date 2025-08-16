@@ -91,14 +91,21 @@
 
 body {
 	margin: 0;
+	padding: 0;
 	background: none !important;
 	background-color: transparent !important;
 	overflow: hidden;
 	user-select: none;
+	border: none;
+	outline: none;
 }
 
 #root {
 	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: none;
+	background: transparent;
 }
 
 /* Improved Scrollbar */
