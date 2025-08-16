@@ -60,7 +60,7 @@ function PaymentButtons() {
 				{awaiting && <div className="container" />}
 				<div className="flex w-full gap-1">
 					<Button
-						className={`grow ${method === 'cash' ? 'ring-1 ring-green-400' : ''} bg-green-700/20 text-green-300 hover:bg-green-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
+						className={`grow transition-all duration-200 ${method === 'cash' ? 'ring-2 ring-green-400 shadow-lg shadow-green-500/20' : ''} bg-green-700/20 text-green-300 hover:bg-green-800/20 hover:shadow-lg hover:shadow-green-500/10 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
 						variant="secondary"
 						data-disabled={!CartItems || CartItems.length === 0 || !canAffordCash || awaiting || overWeight}
 						onClick={() => setMethod('cash')}
@@ -68,7 +68,7 @@ function PaymentButtons() {
 						<FontAwesomeIcon size="lg" icon={faMoneyBill1Wave} />
 					</Button>
 					<Button
-						className={`grow ${method === 'card' ? 'ring-1 ring-blue-400' : ''} bg-blue-700/20 text-blue-300 hover:bg-blue-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
+						className={`grow transition-all duration-200 ${method === 'card' ? 'ring-2 ring-blue-400 shadow-lg shadow-blue-500/20' : ''} bg-blue-700/20 text-blue-300 hover:bg-blue-800/20 hover:shadow-lg hover:shadow-blue-500/10 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
 						variant="secondary"
 						data-disabled={!CartItems || CartItems.length === 0 || !canAffordCard || awaiting || overWeight}
 						onClick={() => setMethod('card')}
@@ -77,7 +77,7 @@ function PaymentButtons() {
 					</Button>
 					{Money.Society > 0 && (
 						<Button
-							className={`grow ${method === 'society' ? 'ring-1 ring-orange-400' : ''} bg-orange-700/20 text-orange-300 hover:bg-orange-800/20 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
+							className={`grow transition-all duration-200 ${method === 'society' ? 'ring-2 ring-orange-400 shadow-lg shadow-orange-500/20' : ''} bg-orange-700/20 text-orange-300 hover:bg-orange-800/20 hover:shadow-lg hover:shadow-orange-500/10 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50`}
 							variant="secondary"
 							data-disabled={!CartItems || CartItems.length === 0 || !canAffordSociety || awaiting || overWeight}
 							onClick={() => setMethod('society')}
@@ -88,7 +88,7 @@ function PaymentButtons() {
 				</div>
 				<div className="mt-2">
 					<Button
-						className="w-full bg-emerald-700/30 text-emerald-300 hover:bg-emerald-800/30 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50"
+						className="w-full bg-emerald-700/30 text-emerald-300 hover:bg-emerald-800/30 hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-200 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:brightness-50"
 						variant="secondary"
 						data-disabled={!CartItems || CartItems.length === 0 || awaiting || overWeight || (method === 'cash' && !canAffordCash) || (method === 'card' && !canAffordCard) || (method === 'society' && !canAffordSociety)}
 						onClick={async () => {

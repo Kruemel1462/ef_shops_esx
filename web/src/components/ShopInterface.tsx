@@ -22,7 +22,7 @@ function ShopTitle() {
 			</div>
 		);
 
-	return <h1 className="ml-6 text-4xl font-bold">{CurrentShop?.label}</h1>;
+	return <h1 className="ml-6 text-4xl font-bold text-shadow-lg shadow-purple-500/20">{CurrentShop?.label}</h1>;
 }
 
 function PlayerData() {
@@ -34,16 +34,16 @@ function PlayerData() {
 
         return (
                 <div className="flex gap-2">
-                        <p className="flex items-center gap-2 rounded-md bg-green-700/20 px-5 py-1 text-lg font-bold leading-none text-green-400">
+                        <p className="flex items-center gap-2 rounded-md bg-green-700/20 px-5 py-1 text-lg font-bold leading-none text-green-400 shadow-lg shadow-green-500/10">
                                 <FontAwesomeIcon size="xl" icon={faMoneyBill1Wave} />
                                 {"$" + formatMoney(Money.Cash)}
                         </p>
-                        <p className="flex items-center gap-2 rounded-md bg-blue-600/20 px-5 py-1 text-lg font-bold leading-none text-blue-400">
+                        <p className="flex items-center gap-2 rounded-md bg-blue-600/20 px-5 py-1 text-lg font-bold leading-none text-blue-400 shadow-lg shadow-blue-500/10">
                                 <FontAwesomeIcon size="xl" icon={faCreditCard} />
                                 {"$" + formatMoney(Money.Bank)}
                         </p>
                         {Money.Society > 0 && (
-                                <p className="flex items-center gap-2 rounded-md bg-orange-600/20 px-5 py-1 text-lg font-bold leading-none text-orange-400">
+                                <p className="flex items-center gap-2 rounded-md bg-orange-600/20 px-5 py-1 text-lg font-bold leading-none text-orange-400 shadow-lg shadow-orange-500/10">
                                         <FontAwesomeIcon size="xl" icon={faUsers} />
                                         {"$" + formatMoney(Money.Society)}
                                 </p>
@@ -67,7 +67,7 @@ export default function ShopInterface() {
                                         <PlayerData />
                                         {showToggle && (
                                                 <Button
-                                                        className="bg-indigo-700/20 text-indigo-300 hover:bg-indigo-800/20"
+                                                        className="bg-indigo-700/20 text-indigo-300 hover:bg-indigo-800/20 transition-all duration-200 hover:shadow-lg hover:shadow-indigo-500/20"
                                                         variant="secondary"
                                                         onClick={() => {
                                                                 if (!SellingMode) {
@@ -81,7 +81,7 @@ export default function ShopInterface() {
                                         )}
                                         {canBuy && (
                                                 <Button
-                                                        className="bg-red-700/20 text-red-300 hover:bg-red-800/20"
+                                                        className="bg-red-700/20 text-red-300 hover:bg-red-800/20 transition-all duration-200 hover:shadow-lg hover:shadow-red-500/20"
                                                         variant="secondary"
                                                         onClick={() => {
                                                                 if (!isEnvBrowser()) fetchNui("startRobbery");

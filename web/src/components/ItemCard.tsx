@@ -32,7 +32,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 
                 return (
                         <div
-                                className={`flex h-full min-h-40 cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all hover:scale-105 hover:bg-card/30 hover:shadow-md ${!canSell ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`flex h-full min-h-40 cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all duration-200 hover:scale-105 hover:bg-card/30 hover:shadow-lg hover:shadow-purple-500/10 ${!canSell ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 onClick={() => {
                                         if (!canSell) return;
                                         addItemToSellCart(item, 1);
@@ -79,7 +79,7 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 			</TooltipPortal>
 			<TooltipTrigger asChild>
 				<div
-					className={`flex h-full min-h-40 grow cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all data-[disabled=true]:cursor-not-allowed data-[disabled=true]:bg-card/10 data-[disabled=true]:grayscale hover:data-[disabled=false]:scale-105 data-[disabled=false]:hover:bg-card/30 hover:data-[disabled=false]:shadow-md`}
+					className={`flex h-full min-h-40 grow cursor-pointer flex-col justify-between rounded-sm bg-card/50 p-2 transition-all duration-200 data-[disabled=true]:cursor-not-allowed data-[disabled=true]:bg-card/10 data-[disabled=true]:grayscale hover:data-[disabled=false]:scale-105 data-[disabled=false]:hover:bg-card/30 hover:data-[disabled=false]:shadow-lg hover:data-[disabled=false]:shadow-purple-500/10`}
 					data-disabled={disabled}
 					onClick={() => {
 						if (disabled) return;

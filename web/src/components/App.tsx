@@ -10,7 +10,7 @@ export default function App() {
 	return (
 		<VisibilityProvider>
 			<div className="flex h-screen w-screen items-center justify-center">
-				<div className="h-[82vh] w-3/4 bg-background/[0.97] p-4 transition-all">
+				<div className="h-[82vh] w-3/4 bg-background/[0.97] p-4 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 rounded-lg">
 					<ShopInterface />
 				</div>
 			</div>
