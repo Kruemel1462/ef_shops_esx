@@ -204,7 +204,8 @@ return {
 			sprite = 606,
 			color = 7,
 			scale = 0.8
-		}
+		},
+		sellItems = { 'phone', 'radio', 'lockpick' }
 	},
 
 	sellonly = {

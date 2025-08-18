@@ -3,18 +3,21 @@ import { VisibilityProvider } from "../providers/VisibilityProvider";
 import DataHandler from "../DataHandler";
 import ShopInterface from "./ShopInterface";
 import { ShopItem } from "../types/ShopItem";
+import { TooltipProvider } from "./ui/tooltip";
 
 export default function App() {
 	DataHandler();
 
 	return (
-		<VisibilityProvider>
-			<div className="h-screen w-screen">
-				<div className="h-[82vh] w-3/4 bg-background/[0.97] p-4 rounded-lg mx-auto my-[9vh] will-change-transform">
-					<ShopInterface />
+		<TooltipProvider>
+			<VisibilityProvider>
+				<div className="h-screen w-screen">
+					<div className="h-[82vh] w-3/4 bg-background/[0.97] p-4 rounded-lg mx-auto my-[9vh] will-change-transform">
+						<ShopInterface />
+					</div>
 				</div>
-			</div>
-		</VisibilityProvider>
+			</VisibilityProvider>
+		</TooltipProvider>
 	);
 }
 
