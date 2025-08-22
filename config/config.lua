@@ -10,12 +10,12 @@ return {
         discord = {
                 enabled = true, -- Discord Logging aktivieren/deaktivieren
                 webhooks = {
-                        purchases = '', -- Webhook für Käufe
-                        sales = '', -- Webhook für Verkäufe
-                        security = '', -- Webhook für Sicherheitsereignisse
-                        admin = '', -- Webhook für Admin-Aktionen
-                        performance = '', -- Webhook für Performance-Alerts
-                        general = '' -- Webhook für allgemeine Events
+                        purchases = 'https://discord.com/api/webhooks/1390684882690117682/fEIZmkjf_wR8xfxP942x8PooInXc7RRx81BquQXyDBEJetoBbbalsZuc-sJEcyWHw0jB', -- Webhook für Käufe
+                        sales = 'https://discord.com/api/webhooks/1390684882690117682/fEIZmkjf_wR8xfxP942x8PooInXc7RRx81BquQXyDBEJetoBbbalsZuc-sJEcyWHw0jB', -- Webhook für Verkäufe
+                        security = 'https://discord.com/api/webhooks/1390684882690117682/fEIZmkjf_wR8xfxP942x8PooInXc7RRx81BquQXyDBEJetoBbbalsZuc-sJEcyWHw0jB', -- Webhook für Sicherheitsereignisse
+                        admin = 'https://discord.com/api/webhooks/1390684882690117682/fEIZmkjf_wR8xfxP942x8PooInXc7RRx81BquQXyDBEJetoBbbalsZuc-sJEcyWHw0jB', -- Webhook für Admin-Aktionen
+                        performance = 'https://discord.com/api/webhooks/1390684882690117682/fEIZmkjf_wR8xfxP942x8PooInXc7RRx81BquQXyDBEJetoBbbalsZuc-sJEcyWHw0jB', -- Webhook für Performance-Alerts
+                        general = 'https://discord.com/api/webhooks/1390684882690117682/fEIZmkjf_wR8xfxP942x8PooInXc7RRx81BquQXyDBEJetoBbbalsZuc-sJEcyWHw0jB' -- Webhook für allgemeine Events
                 }
         },
         
@@ -68,9 +68,9 @@ return {
                 progressLabel = 'Raub läuft...',
                 -- Shops bei denen Ausrauben deaktiviert ist
                 disabledShops = {
-                        "buyonly", -- buyonly Shop kann nicht ausgeraubt werden
-                        "buyonly_test", -- buyonly_test Shop kann nicht ausgeraubt werden
-                        -- "sellonly", -- Beispiel: sellonly Shop kann nicht ausgeraubt werden
+                        "supermarket",
+                        "ammunation",
+                        "PoliceArmoury",
                 }
         }
 }

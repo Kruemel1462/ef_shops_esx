@@ -10,13 +10,33 @@
 
 ---@type table<string, table<string | number, ShopItem>>
 local ITEMS = {
-	electronics = {
-		{ name = 'phone', price = 55, defaultStock = 50, category = 'Electronics' },
-		{ name = 'radio', price = 85, defaultStock = 50, category = 'Electronics' },
-		{ name = 'WEAPON_SNSPISTOL', price = 1850, defaultStock = 5, license = "weapon", category = 'Firearms' },
-		{ name = 'ammo-45', price = 7, defaultStock = 5500, license = "weapon", category = 'Ammunition' },
-		-- { name = 'water_bottle', price = 1, defaultStock = 50, category = 'Drinks' },
-		-- { name = 'sandwich', price = 4, defaultStock = 50, category = 'Food' },
+	supermarket = {
+		{ name = 'hotdog', price = 10, category = 'Essen' },
+		{ name = 'soda', price = 10, category = 'Trinken' },
+		{ name = 'sprunk', price = 10, category = 'Trinken' },
+	},
+
+	ammunation = {
+		{ name = 'WEAPON_KNIFE', price = 80, category = 'Nahkampf' },
+		{ name = 'WEAPON_BAT', price = 45, category = 'Nahkampf' },
+		{ name = 'WEAPON_NIGHTSTICK', price = 500, category = 'Nahkampf' },
+		{ name = 'WEAPON_KNUCKLE', price = 950, category = 'Nahkampf' },
+		{ name = 'WEAPON_PISTOL', price = 2450, license = "weapon", category = 'Feuerwaffen' },
+		{ name = 'WEAPON_SNSPISTOL', price = 1850, license = "weapon", category = 'Feuerwaffen' },
+		{ name = 'ammo-9', price = 4, license = "weapon", category = 'Munition' },
+		{ name = 'ammo-45', price = 7, license = "weapon", category = 'Munition' },
+	},
+	
+	police = {
+		{ name = 'ammo-9', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Munition' },
+		{ name = 'ammo-rifle', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Munition' },
+		{ name = 'WEAPON_FLASHLIGHT', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Ausrüstung' },
+		{ name = 'WEAPON_PUMPSHOTGUN_MK2', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Feuerwaffen' },
+		{ name = 'WEAPON_SMG', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Feuerwaffen' },
+		{ name = 'WEAPON_PISTOL_MK2', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Feuerwaffen' },
+		{ name = 'WEAPON_TACTICALRIFLE', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Feuerwaffen' },
+		{ name = 'WEAPON_HEAVYRIFLE', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Feuerwaffen' },
+		{ name = 'WEAPON_STUNGUN', price = 0, license = "weapon", metadata = {serial = "POL"}, category = 'Ausrüstung' },
 	},
 	-- bar = {
 	-- 	{ name = 'water_bottle', price = 1, defaultStock = 50, category = 'Drinks' },
@@ -31,16 +51,6 @@ local ITEMS = {
 	-- 	{ name = 'hammer', price = 25, defaultStock = 50, category = 'Tools' },
 	-- },
 
-	-- weapons = {
-	-- 	{ name = 'WEAPON_KNIFE', price = 80, defaultStock = 250, category = 'Point Defense' },
-	-- 	{ name = 'WEAPON_BAT', price = 45, defaultStock = 250, category = 'Point Defense' },
-	-- 	{ name = 'WEAPON_NIGHTSTICK', price = 500, category = 'Point Defense' },
-	-- 	{ name = 'WEAPON_KNUCKLE', price = 950, defaultStock = 250, category = 'Point Defense' },
-	-- 	{ name = 'WEAPON_PISTOL', price = 2450, defaultStock = 5, license = "weapon", category = 'Firearms' },
-	-- 	{ name = 'WEAPON_SNSPISTOL', price = 1850, defaultStock = 5, license = "weapon", category = 'Firearms' },
-	-- 	{ name = 'ammo-9', price = 4, defaultStock = 9500, license = "weapon", category = 'Ammunition' },
-	-- 	{ name = 'ammo-45', price = 7, defaultStock = 5500, license = "weapon", category = 'Ammunition' },
-	-- },
 }
 
 local newFormatItems = {}
