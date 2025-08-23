@@ -449,9 +449,48 @@ AddEventHandler('onResourceStop', function(resource)
         saveCooldowns()
 end)
 
+-- Callback um zu prüfen ob Spieler eine Waffe für Raub hat
+lib.callback.register('Paragon-Shops:Server:CanRobShop', function(source)
+    local xPlayer = ESX.GetPlayerFromId(source)
+    if not xPlayer then return false end
+    
+    -- Prüfe ob Spieler WEAPON_PISTOL im Inventar hat
+    local inv = ox_inventory:GetInventory(source)
+    if not inv or not inv.items then return false end
+    
+    for _, item in pairs(inv.items) do
+        if item.name == 'WEAPON_PISTOL' and item.count and item.count > 0 then
+            return true
+        end
+    end
+    
+    return false
+end)
+
 RegisterNetEvent('Paragon-Shops:Server:RobberyStarted', function(shopId, location)
+    local src = source
     local shopData = LOCATIONS[shopId]
     if not shopData or not shopData.coords or not shopData.coords[location] then return end
+
+    -- Sicherheitsprüfung: Hat der Spieler eine Pistole?
+    local xPlayer = ESX.GetPlayerFromId(src)
+    if not xPlayer then return end
+    
+    local inv = ox_inventory:GetInventory(src)
+    if not inv or not inv.items then return end
+    
+    local hasPistol = false
+    for _, item in pairs(inv.items) do
+        if item.name == 'WEAPON_PISTOL' and item.count and item.count > 0 then
+            hasPistol = true
+            break
+        end
+    end
+    
+    if not hasPistol then
+        lib.print.warn(string.format("Player %s (%s) attempted robbery without WEAPON_PISTOL", GetPlayerName(src), xPlayer.identifier))
+        return
+    end
 
     local key = getShopKey(shopId, location)
     if activeRobberies[key] then return end

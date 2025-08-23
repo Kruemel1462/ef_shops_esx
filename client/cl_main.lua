@@ -500,6 +500,17 @@ end)
 RegisterNUICallback("startRobbery", function(_, cb)
         cb(1)
         if not CurrentShop then return end
+        
+        -- Prüfe ob Spieler eine Pistole hat
+        local canRob = lib.callback.await('Paragon-Shops:Server:CanRobShop', false)
+        if not canRob then
+                lib.notify({ 
+                        description = 'Du benötigst eine Pistole um diesen Shop auszurauben!', 
+                        type = 'error' 
+                })
+                return
+        end
+        
         local remain = lib.callback.await('Paragon-Shops:Server:GetRobberyCooldown', false, CurrentShop.id, CurrentShop.location)
         if remain and remain > 0 then
                 robberyCooldown = GetGameTimer() + remain
