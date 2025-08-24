@@ -24,6 +24,21 @@ local CurrentShop
 local robberyCooldown = 0
 local isRobbing = false
 
+-- Cleanup-Funktion um doppelte Peds zu verhindern
+local function CleanupAllVendors()
+    for key, vendor in pairs(Vendors) do
+        if DoesEntityExist(vendor) then
+            if IsModelAPed(GetEntityModel(vendor)) then
+                DeletePed(vendor)
+            else
+                DeleteEntity(vendor)
+            end
+        end
+    end
+    Vendors = {}
+    VendorScenarios = {}
+end
+
 local scenarios = {
         "WORLD_HUMAN_VALET",
         "WORLD_HUMAN_AA_COFFEE",
@@ -90,7 +105,10 @@ local function DestroyAllShopEntities()
 end
 
 local function BuildAllShops()
+    -- Cleanup bestehende Vendors um Duplikate zu verhindern
+    CleanupAllVendors()
     DestroyAllShopEntities()
+    
     for shopID, storeData in pairs(LOCATIONS) do
         if not storeData.coords then goto continue end
         if not ShouldSeeShop(storeData) then goto continue end
@@ -132,11 +150,12 @@ local function BuildAllShops()
                     end
 
                     function deleteEntity()
-                        if DoesEntityExist(Vendors[shopID .. locationIndex]) then
-                            DeletePed(Vendors[shopID .. locationIndex])
+                        local vendorKey = shopID .. locationIndex
+                        if Vendors[vendorKey] and DoesEntityExist(Vendors[vendorKey]) then
+                            DeletePed(Vendors[vendorKey])
                         end
-                        Vendors[shopID .. locationIndex] = nil
-                        VendorScenarios[shopID .. locationIndex] = nil
+                        Vendors[vendorKey] = nil
+                        VendorScenarios[vendorKey] = nil
                     end
                 else
                     function createEntity()
@@ -146,25 +165,36 @@ local function BuildAllShops()
                     end
 
                     function deleteEntity()
-                        if DoesEntityExist(Vendors[shopID .. locationIndex]) then
-                            DeleteEntity(Vendors[shopID .. locationIndex])
+                        local vendorKey = shopID .. locationIndex
+                        if Vendors[vendorKey] and DoesEntityExist(Vendors[vendorKey]) then
+                            DeleteEntity(Vendors[vendorKey])
                         end
-                        Vendors[shopID .. locationIndex] = nil
-                        VendorScenarios[shopID .. locationIndex] = nil
+                        Vendors[vendorKey] = nil
+                        VendorScenarios[vendorKey] = nil
                     end
                 end
 
                 -- Point System für Nähe-Erkennung (Spawn/Despawn Vendor)
                 local point = lib.points.new(locationCoords, 25)
                 function point:onEnter()
-                    if not Vendors[shopID .. locationIndex] or (Vendors[shopID .. locationIndex] and not DoesEntityExist(Vendors[shopID .. locationIndex])) then
-                        while not HasModelLoaded(model) do
-                            pcall(function()
-                                lib.requestModel(model)
-                            end)
-                        end
-                        createEntity()
+                    -- Verbesserte Überprüfung gegen Doppelspawning
+                    local vendorKey = shopID .. locationIndex
+                    if Vendors[vendorKey] and DoesEntityExist(Vendors[vendorKey]) then
+                        return -- Vendor existiert bereits
                     end
+                    
+                    -- Cleanup falls ein ungültiger Vendor-Eintrag existiert
+                    if Vendors[vendorKey] and not DoesEntityExist(Vendors[vendorKey]) then
+                        Vendors[vendorKey] = nil
+                        VendorScenarios[vendorKey] = nil
+                    end
+                    
+                    while not HasModelLoaded(model) do
+                        pcall(function()
+                            lib.requestModel(model)
+                        end)
+                    end
+                    createEntity()
                 end
 
                 function point:onExit()
