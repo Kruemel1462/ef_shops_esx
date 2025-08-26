@@ -89,12 +89,6 @@ export default function ItemCard({ item }: { item: ShopItem }) {
 						if (disabled) return;
 						addItemToCart(item);
 					}}
-					onDoubleClick={() => {
-						if (disabled) return;
-						// Doppelklick = 5 Items hinzufügen
-						addItemToCart(item, 5);
-					}}
-					title={disabled ? '' : 'Klick = 1x hinzufügen, Doppelklick = 5x hinzufügen'}
 				>
 					<div className="mx-auto flex w-full items-center justify-between gap-2">
                         <div className="text-right">
