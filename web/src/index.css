@@ -7,72 +7,72 @@
 
 @layer base {
 	:root {
-		--background: 270 100% 98%;
-		--foreground: 270 15% 20%;
-		--card: 270 50% 95%;
-		--card-foreground: 270 15% 20%;
-		--popover: 270 100% 98%;
-		--popover-foreground: 270 15% 20%;
-		--primary: 270 70% 55%;
+		--background: 24 100% 98%;
+		--foreground: 24 15% 20%;
+		--card: 24 50% 95%;
+		--card-foreground: 24 15% 20%;
+		--popover: 24 100% 98%;
+		--popover-foreground: 24 15% 20%;
+		--primary: 24 70% 55%;
 		--primary-foreground: 0 0% 98%;
-		--secondary: 270 40% 90%;
-		--secondary-foreground: 270 15% 20%;
-		--muted: 270 30% 92%;
-		--muted-foreground: 270 20% 40%;
-		--accent: 275 65% 80%;
-		--accent-foreground: 270 15% 20%;
+		--secondary: 24 40% 90%;
+		--secondary-foreground: 24 15% 20%;
+		--muted: 24 30% 92%;
+		--muted-foreground: 24 20% 40%;
+		--accent: 29 65% 80%;
+		--accent-foreground: 24 15% 20%;
 		--destructive: 0 72.22% 50.59%;
 		--destructive-foreground: 0 0% 98%;
-		--border: 270 40% 85%;
-		--input: 270 40% 85%;
-		--ring: 270 70% 60%;
+		--border: 24 40% 85%;
+		--input: 24 40% 85%;
+		--ring: 24 70% 60%;
 		--radius: 1rem;
 
-		--chart-1: 275 70% 70%;
-		--chart-2: 280 65% 60%;
-		--chart-3: 285 60% 50%;
-		--chart-4: 290 65% 60%;
-		--chart-5: 295 70% 70%;
+		--chart-1: 29 70% 70%;
+		--chart-2: 34 65% 60%;
+		--chart-3: 39 60% 50%;
+		--chart-4: 44 65% 60%;
+		--chart-5: 49 70% 70%;
 
-                --color-everfall-50: 250 245 255;
-                --color-everfall-100: 243 232 255;
-                --color-everfall-200: 233 213 255;
-                --color-everfall-300: 216 180 254;
-                --color-everfall-400: 192 132 252;
-                --color-everfall-500: 168 85 247;
-                --color-everfall-600: 147 51 234;
-                --color-everfall-650: 135 37 217;
-                --color-everfall-700: 126 34 206;
-                --color-everfall-800: 107 33 168;
-                --color-everfall-900: 59 7 100;
+                --color-everfall-50: 255 247 237;
+                --color-everfall-100: 255 237 213;
+                --color-everfall-200: 254 215 170;
+                --color-everfall-300: 253 186 116;
+                --color-everfall-400: 251 146 60;
+                --color-everfall-500: 249 115 22;
+                --color-everfall-600: 234 88 12;
+                --color-everfall-650: 217 68 9;
+                --color-everfall-700: 194 65 14;
+                --color-everfall-800: 154 52 18;
+                --color-everfall-900: 119 29 14;
 	}
 
 	.dark {
-		--background: 270 30% 10%;
+		--background: 24 30% 10%;
 		--foreground: 0 0% 98%;
-		--card: 270 30% 15%;
+		--card: 24 30% 15%;
 		--card-foreground: 0 0% 98%;
-		--popover: 270 30% 20%;
+		--popover: 24 30% 20%;
 		--popover-foreground: 0 0% 98%;
-		--primary: 275 70% 60%;
+		--primary: 29 70% 60%;
 		--primary-foreground: 0 0% 98%;
-		--secondary: 270 25% 25%;
+		--secondary: 24 25% 25%;
 		--secondary-foreground: 0 0% 98%;
-		--muted: 270 25% 25%;
-		--muted-foreground: 275 20% 75%;
-		--accent: 275 35% 40%;
+		--muted: 24 25% 25%;
+		--muted-foreground: 29 20% 75%;
+		--accent: 29 35% 40%;
 		--accent-foreground: 0 0% 98%;
 		--destructive: 0 62.8% 30.6%;
 		--destructive-foreground: 0 85.7% 97.3%;
-		--border: 270 25% 25%;
-		--input: 270 25% 25%;
-		--ring: 275 50% 60%;
+		--border: 24 25% 25%;
+		--input: 24 25% 25%;
+		--ring: 29 50% 60%;
 
-		--chart-1: 280 70% 50%;
-		--chart-2: 260 65% 45%;
-		--chart-3: 240 80% 55%;
-		--chart-4: 300 65% 60%;
-		--chart-5: 320 75% 55%;
+		--chart-1: 34 70% 50%;
+		--chart-2: 14 65% 45%;
+		--chart-3: 44 80% 55%;
+		--chart-4: 54 65% 60%;
+		--chart-5: 64 75% 55%;
 	}
 }
 
@@ -130,30 +130,30 @@ body {
 
 /* Track */
 ::-webkit-scrollbar-track {
-	background: rgba(147, 51, 234, 0.15);
+	background: rgba(234, 88, 12, 0.15);
 	border-radius: 16px;
-	border: 1px solid rgba(147, 51, 234, 0.1);
+	border: 1px solid rgba(234, 88, 12, 0.1);
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-	background: linear-gradient(180deg, #a855f7, #9333ea, #7c3aed);
+	background: linear-gradient(180deg, #f97316, #ea580c, #dc2626);
 	border-radius: 16px;
-	border: 2px solid rgba(147, 51, 234, 0.2);
-	box-shadow: 0 2px 8px rgba(147, 51, 234, 0.3);
+	border: 2px solid rgba(234, 88, 12, 0.2);
+	box-shadow: 0 2px 8px rgba(234, 88, 12, 0.3);
 	transition: all 0.3s ease;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-	background: linear-gradient(180deg, #9333ea, #7c3aed, #6d28d9);
-	box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
+	background: linear-gradient(180deg, #ea580c, #dc2626, #c2410c);
+	box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4);
 	transform: scale(1.05);
 }
 
-/* Enhanced purple UI with improved animations - NO BORDERS */
+/* Enhanced orange UI with improved animations - NO BORDERS */
 .bg-card {
-	background: linear-gradient(135deg, hsl(var(--card) / 0.8), hsl(270 40% 96% / 0.6));
+	background: linear-gradient(135deg, hsl(var(--card) / 0.8), hsl(24 95% 53% / 0.6));
 	border-radius: 1.5rem;
 	border: none !important;
 	box-shadow: none !important;
@@ -187,12 +187,12 @@ button:active {
 }
 
 .bg-primary {
-	background: linear-gradient(135deg, #9333ea, #7c3aed);
+	background: linear-gradient(135deg, #ea580c, #dc2626);
 	border-radius: 1rem;
 }
 
 .bg-secondary {
-	background: linear-gradient(135deg, hsl(270 40% 90%), hsl(270 50% 93%));
+	background: linear-gradient(135deg, hsl(24 95% 90%), hsl(24 95% 93%));
 	border-radius: 1rem;
 }
 
@@ -211,8 +211,8 @@ input:focus, select:focus, textarea:focus {
 	transform: translateY(-1px);
 }
 
-/* Purple glow effects and animations - DISABLED */
-.glow-purple {
+/* Orange glow effects and animations - DISABLED */
+.glow-orange {
 	box-shadow: none !important;
 }
 
@@ -378,8 +378,8 @@ input:focus, select:focus, textarea:focus {
 	color: #ffffff !important;
 }
 
-[class*="w-[25%]"] .bg-indigo-800\/20 {
-	background: rgb(30, 30, 30) !important;
+[class*="w-[25%]"] .bg-orange-800\/20 {
+	background: rgb(154, 52, 18) !important;
 	color: #ffffff !important;
 }
 
@@ -444,7 +444,7 @@ input:focus, select:focus, textarea:focus {
 	box-shadow: none !important;
 }
 
-/* Fallback for any remaining purple buttons in cart */
+/* Fallback for any remaining orange buttons in cart */
 [class*="w-[25%]"] button:not([class*="bg-red"]):not([class*="bg-green"]):not([class*="bg-blue"]):not([class*="bg-orange"]) {
 	background: rgb(50, 50, 50) !important;
 	color: #ffffff !important;
