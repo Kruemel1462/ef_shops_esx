@@ -74,11 +74,14 @@ export default function ShopGrid() {
 		);
 
 	return (
-		<div className="flex size-full flex-col">
-			<div className="relative mb-3">
+		<div className="flex size-full flex-col gap-3 rounded-2xl bg-gradient-to-br from-slate-900/30 to-slate-950/30 p-4 shadow-2xl backdrop-blur-sm">
+			<div className="relative">
+				<div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+					<span className="text-xl">🔍</span>
+				</div>
 				<input
 					type="text"
-					placeholder="🔍 Suche... (Shortcuts: !waffe, !essen, !trinken)"
+					placeholder="Suche... (Shortcuts: !waffe, !essen, !trinken)"
 					value={searchText}
 					onChange={(e) => {
 						let value = e.target.value;
@@ -98,7 +101,7 @@ export default function ShopGrid() {
 						}
 						setSearchText(value);
 					}}
-					className="w-full rounded-lg bg-background/80 px-4 py-3 text-sm backdrop-blur-sm transition-all duration-300 placeholder:text-gray-400 focus:outline-none"
+					className="w-full rounded-xl bg-gradient-to-r from-slate-800/60 to-slate-900/60 py-3 pl-12 pr-10 text-sm text-slate-100 shadow-lg backdrop-blur-md transition-all duration-300 placeholder:text-slate-400 focus:from-slate-700/70 focus:to-slate-800/70 focus:shadow-orange-500/10 focus:outline-none"
 					onKeyDown={(e) => {
 						// ESC zum Leeren
 						if (e.key === "Escape") {
@@ -109,7 +112,7 @@ export default function ShopGrid() {
 				{searchText && (
 					<button
 						onClick={() => setSearchText("")}
-						className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-200 hover:text-orange-400"
+						className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-orange-600/20 text-orange-400 transition-all duration-200 hover:bg-orange-600/30 hover:text-orange-300"
 						title="ESC oder hier klicken zum Leeren"
 					>
 						✕
@@ -117,12 +120,12 @@ export default function ShopGrid() {
 				)}
 			</div>
 			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex size-full flex-col">
-				<TabsList className="mb-2 justify-start rounded-lg bg-gradient-to-r from-orange-900/20 to-orange-800/20 p-1 backdrop-blur-sm">
+				<TabsList className="mb-2 flex justify-start gap-2 rounded-xl bg-gradient-to-r from-orange-950/40 to-orange-900/40 p-2 shadow-lg backdrop-blur-sm">
 					{Object.keys(categories).map((category) => (
 						<TabsTrigger
 							value={category}
 							key={category}
-							className="rounded-md px-4 py-2 font-medium transition-all duration-300 hover:bg-orange-700/20 data-[state=active]:bg-orange-600/40 data-[state=active]:text-orange-100 data-[state=active]:shadow-lg"
+							className="rounded-lg px-5 py-2.5 font-semibold text-slate-300 transition-all duration-300 hover:bg-orange-700/30 hover:text-orange-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-600/60 data-[state=active]:to-orange-700/60 data-[state=active]:text-orange-50 data-[state=active]:shadow-lg data-[state=active]:shadow-orange-500/20"
 						>
 							{category}
 						</TabsTrigger>
@@ -130,7 +133,7 @@ export default function ShopGrid() {
 				</TabsList>
 				<TabsContent value={activeTab} className="flex size-full flex-col">
 					<ScrollArea className="h-0 grow">
-						<div className="grid h-full w-full grow grid-cols-6 gap-4 px-4 py-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
+						<div className="grid h-full w-full grow grid-cols-6 gap-4 px-2 py-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
 							<TooltipProvider delayDuration={0} disableHoverableContent={true}>
 								<ShopTab tab={activeTab} filter={searchText} />
 							</TooltipProvider>
